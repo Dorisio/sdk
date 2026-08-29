@@ -1,7 +1,7 @@
 /**
- * TipForgeClient
+ * DorisioClient
  *
- * Main client for interacting with TipForge backend API.
+ * Main client for interacting with Dorisio backend API.
  * Handles authentication, request/response handling, and error management.
  */
 
@@ -23,7 +23,7 @@ export interface ClientConfig {
   timeout?: number;
 }
 
-export class TipForgeClient {
+export class DorisioClient {
   private config: Required<ClientConfig>;
   private httpClient: HttpClient;
   private token?: string;

@@ -1,14 +1,14 @@
 /**
- * TipForge SDK
+ * Dorisio SDK
  *
- * Client library for TipForge payment infrastructure.
- * Provides type-safe API client and utilities for integrating TipForge payments.
+ * Client library for Dorisio payment infrastructure.
+ * Provides type-safe API client and utilities for integrating Dorisio payments.
  */
 
 export const SDK_VERSION = '0.1.0';
 
 // Re-export client and utilities
-export { TipForgeClient } from './client';
+export { DorisioClient } from './client';
 
 // Re-export types
 export type { ApiResponse, ApiError, ClientConfig } from './types';

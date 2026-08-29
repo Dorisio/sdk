@@ -7,12 +7,12 @@
 import { Creator, CreatorProfile } from '../types/models';
 import { CreatorMapper } from '../utils/mappers';
 import { normalizeCreator, normalizeCreators } from '../utils/normalizers';
-import { TipForgeClient } from '../client';
+import { DorisioClient } from '../client';
 
 /**
  * Get creator by ID
  */
-export async function getCreator(this: TipForgeClient, creatorId: string): Promise<Creator> {
+export async function getCreator(this: DorisioClient, creatorId: string): Promise<Creator> {
   const response = await this.request('GET', `/creators/${creatorId}`);
 
   if (!response.success || !response.data) {
@@ -26,7 +26,7 @@ export async function getCreator(this: TipForgeClient, creatorId: string): Promi
  * List creators with pagination
  */
 export async function listCreators(
-  this: TipForgeClient,
+  this: DorisioClient,
   options?: {
     page?: number;
     pageSize?: number;
@@ -58,7 +58,7 @@ export async function listCreators(
  * Get public creator profile by username
  */
 export async function getCreatorProfile(
-  this: TipForgeClient,
+  this: DorisioClient,
   username: string
 ): Promise<CreatorProfile> {
   const response = await this.request('GET', `/creators/profile/${username}`);
@@ -82,7 +82,7 @@ export async function getCreatorProfile(
  * Verify creator identity (admin only)
  */
 export async function verifyCreator(
-  this: TipForgeClient,
+  this: DorisioClient,
   creatorId: string,
   verified: boolean
 ): Promise<Creator> {

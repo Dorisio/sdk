@@ -6,7 +6,7 @@
 
 import { User } from '../types/models';
 import { normalizeUser } from '../utils/normalizers';
-import { TipForgeClient } from '../client';
+import { DorisioClient } from '../client';
 
 export interface SessionInfo {
   userId: string;
@@ -19,7 +19,7 @@ export interface SessionInfo {
 /**
  * Refresh user session and get new token
  */
-export async function refreshSession(this: TipForgeClient): Promise<SessionInfo> {
+export async function refreshSession(this: DorisioClient): Promise<SessionInfo> {
   const response = await this.request('POST', '/auth/refresh');
 
   if (!response.success || !response.data) {
@@ -45,7 +45,7 @@ export async function refreshSession(this: TipForgeClient): Promise<SessionInfo>
 /**
  * Validate current session
  */
-export async function validateSession(this: TipForgeClient): Promise<User> {
+export async function validateSession(this: DorisioClient): Promise<User> {
   const response = await this.request('GET', '/auth/validate');
 
   if (!response.success || !response.data) {
@@ -58,7 +58,7 @@ export async function validateSession(this: TipForgeClient): Promise<User> {
 /**
  * Get current user info
  */
-export async function getCurrentUser(this: TipForgeClient): Promise<User> {
+export async function getCurrentUser(this: DorisioClient): Promise<User> {
   const response = await this.request('GET', '/users/me');
 
   if (!response.success || !response.data) {
@@ -71,7 +71,7 @@ export async function getCurrentUser(this: TipForgeClient): Promise<User> {
 /**
  * Logout and invalidate session
  */
-export async function logout(this: TipForgeClient): Promise<void> {
+export async function logout(this: DorisioClient): Promise<void> {
   try {
     await this.request('POST', '/auth/logout');
   } finally {
@@ -83,7 +83,7 @@ export async function logout(this: TipForgeClient): Promise<void> {
 /**
  * Check if user is authenticated
  */
-export async function isAuthenticated(this: TipForgeClient): Promise<boolean> {
+export async function isAuthenticated(this: DorisioClient): Promise<boolean> {
   try {
     await this.validateSession();
     return true;
@@ -95,7 +95,7 @@ export async function isAuthenticated(this: TipForgeClient): Promise<boolean> {
 /**
  * Extend session expiry (keep-alive)
  */
-export async function extendSession(this: TipForgeClient): Promise<SessionInfo> {
+export async function extendSession(this: DorisioClient): Promise<SessionInfo> {
   const response = await this.request('POST', '/auth/extend');
 
   if (!response.success || !response.data) {
@@ -121,7 +121,7 @@ export async function extendSession(this: TipForgeClient): Promise<SessionInfo> 
 /**
  * Get session expiry time
  */
-export async function getSessionExpiry(this: TipForgeClient): Promise<{
+export async function getSessionExpiry(this: DorisioClient): Promise<{
   expiresAt: string;
   expiresIn: number;
   isExpired: boolean;

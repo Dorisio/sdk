@@ -12,13 +12,13 @@ import {
   filterTransactionsByDateRange,
   groupTransactionsByCreator,
 } from '../utils/transaction-normalizers';
-import { TipForgeClient } from '../client';
+import { DorisioClient } from '../client';
 
 /**
  * Get full transaction history with filters
  */
 export async function getFullTransactionHistory(
-  this: TipForgeClient,
+  this: DorisioClient,
   options?: {
     page?: number;
     pageSize?: number;
@@ -61,7 +61,7 @@ export async function getFullTransactionHistory(
  * Get transaction statistics
  */
 export async function getTransactionStats(
-  this: TipForgeClient,
+  this: DorisioClient,
   userId?: string
 ): Promise<TransactionStats> {
   const params = userId ? `?userId=${userId}` : '';
@@ -83,7 +83,7 @@ export async function getTransactionStats(
  * Get creator earnings summary
  */
 export async function getCreatorEarnings(
-  this: TipForgeClient,
+  this: DorisioClient,
   creatorId: string
 ): Promise<{
   totalEarnings: number;
@@ -109,7 +109,7 @@ export async function getCreatorEarnings(
  * Export transaction history (CSV or JSON)
  */
 export async function exportTransactionHistory(
-  this: TipForgeClient,
+  this: DorisioClient,
   options?: {
     format?: 'csv' | 'json';
     startDate?: Date;

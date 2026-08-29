@@ -4,7 +4,7 @@
  * SDK methods for balance and account queries.
  */
 
-import { TipForgeClient } from '../client';
+import { DorisioClient } from '../client';
 
 export interface BalanceInfo {
   walletId: string;
@@ -24,7 +24,7 @@ export interface AccountBalance {
 /**
  * Get user's total balance across all wallets
  */
-export async function getBalance(this: TipForgeClient, userId: string): Promise<AccountBalance> {
+export async function getBalance(this: DorisioClient, userId: string): Promise<AccountBalance> {
   const response = await this.request('GET', `/users/${userId}/balance`);
 
   if (!response.success || !response.data) {
@@ -49,7 +49,7 @@ export async function getBalance(this: TipForgeClient, userId: string): Promise<
  * Get single wallet balance
  */
 export async function getWalletBalance(
-  this: TipForgeClient,
+  this: DorisioClient,
   walletId: string
 ): Promise<BalanceInfo> {
   const response = await this.request('GET', `/wallets/${walletId}/balance`);
@@ -71,7 +71,7 @@ export async function getWalletBalance(
  * Get creator's pending payout
  */
 export async function getCreatorPendingPayout(
-  this: TipForgeClient,
+  this: DorisioClient,
   creatorId: string
 ): Promise<{
   pending: number;
@@ -94,7 +94,7 @@ export async function getCreatorPendingPayout(
 /**
  * Check if minimum payout threshold is reached
  */
-export async function canPayout(this: TipForgeClient, creatorId: string): Promise<boolean> {
+export async function canPayout(this: DorisioClient, creatorId: string): Promise<boolean> {
   const response = await this.request('GET', `/creators/${creatorId}/can-payout`);
 
   if (!response.success || response.data === undefined) {
@@ -107,7 +107,7 @@ export async function canPayout(this: TipForgeClient, creatorId: string): Promis
 /**
  * Get account summary with balance and stats
  */
-export async function getAccountSummary(this: TipForgeClient): Promise<{
+export async function getAccountSummary(this: DorisioClient): Promise<{
   userId: string;
   email: string;
   role: string;

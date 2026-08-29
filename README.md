@@ -1,17 +1,17 @@
-# TipForge SDK
+# Dorisio SDK
 
-Client library for TipForge payment infrastructure.
+Client library for Dorisio payment infrastructure.
 
 ## Setup
 
 ```bash
-npm install tipforge-sdk
+npm install Dorisio-sdk
 ```
 
 ## Usage
 
 ```typescript
-import { TipForgeClient } from "tipforge-sdk";
+import { DorisioClient } from "Dorisio-sdk";
 
-const client = new TipForgeClient("https://api.tipforge.com");
+const client = new DorisioClient("https://api.Dorisio.com");
 ```

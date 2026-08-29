@@ -1,5 +1,5 @@
 /**
- * TipForge SDK Types
+ * Dorisio SDK Types
  *
  * Public type exports for SDK consumers.
  * Re-exports all domain models and request/response types.

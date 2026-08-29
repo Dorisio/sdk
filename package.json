@@ -1,7 +1,7 @@
 {
-  "name": "tipforge-sdk",
+  "name": "dorisio-sdk",
   "version": "0.1.0",
-  "description": "TipForge SDK - Client abstraction layer for payment integration",
+  "description": "Dorisio SDK - Client abstraction layer for payment integration",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

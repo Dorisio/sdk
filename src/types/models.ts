@@ -1,7 +1,7 @@
 /**
  * Domain Models
  *
- * Core type definitions for TipForge entities.
+ * Core type definitions for Dorisio entities.
  */
 
 /**

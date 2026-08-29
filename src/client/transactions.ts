@@ -6,12 +6,12 @@
 
 import { Transaction, TipRequest, TransactionHistory } from '../types/models';
 import { normalizeTransaction, normalizeTransactionHistory } from '../utils/normalizers';
-import { TipForgeClient } from '../client';
+import { DorisioClient } from '../client';
 
 /**
  * Create a tip transaction
  */
-export async function createTip(this: TipForgeClient, data: TipRequest): Promise<Transaction> {
+export async function createTip(this: DorisioClient, data: TipRequest): Promise<Transaction> {
   if (!data.creatorId) {
     throw new Error('Creator ID is required to create a tip');
   }
@@ -39,7 +39,7 @@ export async function createTip(this: TipForgeClient, data: TipRequest): Promise
  * Get transaction status
  */
 export async function getTipStatus(
-  this: TipForgeClient,
+  this: DorisioClient,
   transactionId: string
 ): Promise<Transaction> {
   const response = await this.request('GET', `/transactions/${transactionId}`);
@@ -55,7 +55,7 @@ export async function getTipStatus(
  * Get transaction history for user
  */
 export async function getTransactionHistory(
-  this: TipForgeClient,
+  this: DorisioClient,
   options?: {
     userId?: string;
     creatorId?: string;
@@ -86,7 +86,7 @@ export async function getTransactionHistory(
  * Get user's tips sent
  */
 export async function getUserTipsSent(
-  this: TipForgeClient,
+  this: DorisioClient,
   userId: string,
   options?: {
     page?: number;
@@ -111,7 +111,7 @@ export async function getUserTipsSent(
  * Get creator's tips received
  */
 export async function getCreatorTipsReceived(
-  this: TipForgeClient,
+  this: DorisioClient,
   creatorId: string,
   options?: {
     page?: number;
@@ -136,7 +136,7 @@ export async function getCreatorTipsReceived(
  * Retry failed transaction
  */
 export async function retryTransaction(
-  this: TipForgeClient,
+  this: DorisioClient,
   transactionId: string
 ): Promise<Transaction> {
   const response = await this.request('POST', `/transactions/${transactionId}/retry`);

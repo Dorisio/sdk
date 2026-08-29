@@ -1,14 +1,14 @@
-# TipForge SDK Client Methods
+# Dorisio SDK Client Methods
 
-Comprehensive guide to all TipForgeClient methods for interacting with the TipForge API.
+Comprehensive guide to all DorisioClient methods for interacting with the Dorisio API.
 
 ## Initialization
 
 ```typescript
-import { TipForgeClient } from '@tipforge/sdk';
+import { DorisioClient } from '@Dorisio/sdk';
 
-const client = new TipForgeClient({
-  baseUrl: 'https://api.tipforge.io',
+const client = new DorisioClient({
+  baseUrl: 'https://api.Dorisio.io',
   token: 'your-jwt-token', // optional, can be set later
   timeout: 30000, // optional, default 30s
 });

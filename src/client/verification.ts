@@ -6,7 +6,7 @@
 
 import { Creator, Wallet } from '../types/models';
 import { normalizeCreator, normalizeWallet } from '../utils/normalizers';
-import { TipForgeClient } from '../client';
+import { DorisioClient } from '../client';
 
 export interface VerificationStatus {
   verified: boolean;
@@ -17,7 +17,7 @@ export interface VerificationStatus {
 /**
  * Verify creator identity (requires proof/admin approval)
  */
-export async function verifyCreator(this: TipForgeClient, creatorId: string): Promise<Creator> {
+export async function verifyCreator(this: DorisioClient, creatorId: string): Promise<Creator> {
   const response = await this.request('POST', `/creators/${creatorId}/verify`);
 
   if (!response.success || !response.data) {
@@ -31,7 +31,7 @@ export async function verifyCreator(this: TipForgeClient, creatorId: string): Pr
  * Request creator verification (submits for review)
  */
 export async function requestCreatorVerification(
-  this: TipForgeClient,
+  this: DorisioClient,
   creatorId: string,
   data: {
     documentType: string;
@@ -56,7 +56,7 @@ export async function requestCreatorVerification(
  * Get creator verification status
  */
 export async function getCreatorVerificationStatus(
-  this: TipForgeClient,
+  this: DorisioClient,
   creatorId: string
 ): Promise<VerificationStatus & { status: string }> {
   const response = await this.request('GET', `/creators/${creatorId}/verification-status`);
@@ -77,7 +77,7 @@ export async function getCreatorVerificationStatus(
  * Verify wallet ownership (challenge/response)
  */
 export async function verifyWallet(
-  this: TipForgeClient,
+  this: DorisioClient,
   walletId: string,
   proof: string
 ): Promise<Wallet> {
@@ -94,7 +94,7 @@ export async function verifyWallet(
  * Get wallet verification status
  */
 export async function getWalletVerificationStatus(
-  this: TipForgeClient,
+  this: DorisioClient,
   walletId: string
 ): Promise<VerificationStatus> {
   const response = await this.request('GET', `/wallets/${walletId}/verification-status`);
@@ -114,7 +114,7 @@ export async function getWalletVerificationStatus(
  * Request wallet verification challenge
  */
 export async function requestWalletVerificationChallenge(
-  this: TipForgeClient,
+  this: DorisioClient,
   walletId: string
 ): Promise<{ challenge: string; expiresIn: number }> {
   const response = await this.request('POST', `/wallets/${walletId}/verification-challenge`);
@@ -133,7 +133,7 @@ export async function requestWalletVerificationChallenge(
  * Check if transaction requires verification
  */
 export async function isTransactionVerified(
-  this: TipForgeClient,
+  this: DorisioClient,
   transactionId: string
 ): Promise<boolean> {
   const response = await this.request('GET', `/transactions/${transactionId}/verified`);

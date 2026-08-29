@@ -6,13 +6,13 @@
 
 import { Wallet, CreateWalletRequest, UpdateWalletRequest } from '../types/models';
 import { normalizeWallet, normalizeWallets } from '../utils/normalizers';
-import { TipForgeClient } from '../client';
+import { DorisioClient } from '../client';
 
 /**
  * Connect a wallet to user account
  */
 export async function connectWallet(
-  this: TipForgeClient,
+  this: DorisioClient,
   data: CreateWalletRequest
 ): Promise<Wallet> {
   const response = await this.request('POST', '/wallets', data);
@@ -27,7 +27,7 @@ export async function connectWallet(
 /**
  * Disconnect a wallet from user account
  */
-export async function disconnectWallet(this: TipForgeClient, walletId: string): Promise<void> {
+export async function disconnectWallet(this: DorisioClient, walletId: string): Promise<void> {
   const response = await this.request('DELETE', `/wallets/${walletId}`);
 
   if (!response.success) {
@@ -38,7 +38,7 @@ export async function disconnectWallet(this: TipForgeClient, walletId: string): 
 /**
  * Get user's wallets
  */
-export async function getWallets(this: TipForgeClient, userId: string): Promise<Wallet[]> {
+export async function getWallets(this: DorisioClient, userId: string): Promise<Wallet[]> {
   const response = await this.request('GET', `/users/${userId}/wallets`);
 
   if (!response.success || !response.data) {
@@ -51,7 +51,7 @@ export async function getWallets(this: TipForgeClient, userId: string): Promise<
 /**
  * Get wallet by ID
  */
-export async function getWallet(this: TipForgeClient, walletId: string): Promise<Wallet> {
+export async function getWallet(this: DorisioClient, walletId: string): Promise<Wallet> {
   const response = await this.request('GET', `/wallets/${walletId}`);
 
   if (!response.success || !response.data) {
@@ -65,7 +65,7 @@ export async function getWallet(this: TipForgeClient, walletId: string): Promise
  * Update wallet details
  */
 export async function updateWallet(
-  this: TipForgeClient,
+  this: DorisioClient,
   walletId: string,
   data: UpdateWalletRequest
 ): Promise<Wallet> {
@@ -81,7 +81,7 @@ export async function updateWallet(
 /**
  * Verify wallet ownership (for Stellar wallets)
  */
-export async function verifyWallet(this: TipForgeClient, walletId: string): Promise<Wallet> {
+export async function verifyWallet(this: DorisioClient, walletId: string): Promise<Wallet> {
   const response = await this.request('POST', `/wallets/${walletId}/verify`);
 
   if (!response.success || !response.data) {
@@ -94,7 +94,7 @@ export async function verifyWallet(this: TipForgeClient, walletId: string): Prom
 /**
  * Get wallet balance
  */
-export async function getBalance(this: TipForgeClient, walletId: string): Promise<number> {
+export async function getBalance(this: DorisioClient, walletId: string): Promise<number> {
   const response = await this.request('GET', `/wallets/${walletId}/balance`);
 
   if (!response.success || response.data === undefined) {

@@ -13,11 +13,11 @@ export interface SdkConfig {
 }
 
 const DEFAULT_CONFIG: SdkConfig = {
-  apiUrl: process.env.TIPFORGE_API_URL || 'http://localhost:3000',
-  timeout: parseInt(process.env.TIPFORGE_TIMEOUT || '30000', 10),
-  retryAttempts: parseInt(process.env.TIPFORGE_RETRY_ATTEMPTS || '3', 10),
-  retryDelay: parseInt(process.env.TIPFORGE_RETRY_DELAY || '1000', 10),
-  debug: process.env.TIPFORGE_DEBUG === 'true',
+  apiUrl: process.env.DORISIO_API_URL || 'http://localhost:3000',
+  timeout: parseInt(process.env.DORISIO_TIMEOUT || '30000', 10),
+  retryAttempts: parseInt(process.env.DORISIO_RETRY_ATTEMPTS || '3', 10),
+  retryDelay: parseInt(process.env.DORISIO_RETRY_DELAY || '1000', 10),
+  debug: process.env.DORISIO_DEBUG === 'true',
 };
 
 let config: SdkConfig = { ...DEFAULT_CONFIG };
