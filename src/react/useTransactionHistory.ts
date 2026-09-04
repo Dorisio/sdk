@@ -24,10 +24,7 @@ export interface UseTransactionHistoryState {
 }
 
 export interface UseTransactionHistoryActions {
-  fetchHistory: (
-    options?: TransactionHistoryOptions,
-    creatorId?: string
-  ) => Promise<Transaction[]>;
+  fetchHistory: (options?: TransactionHistoryOptions, creatorId?: string) => Promise<Transaction[]>;
   goToPage: (page: number) => Promise<void>;
   nextPage: () => Promise<void>;
   prevPage: () => Promise<void>;
@@ -92,7 +89,9 @@ export function useTransactionHistory(
 
         const page = options?.page || state.page;
         const pageSize = options?.pageSize || state.pageSize;
-        const endpoint = creator ? `/api/v1/transactions/creator/${creator}` : '/api/v1/transactions/history';
+        const endpoint = creator
+          ? `/api/v1/transactions/creator/${creator}`
+          : '/api/v1/transactions/history';
         const query = `?page=${page}&pageSize=${pageSize}`;
 
         const response = await client.request('GET', `${endpoint}${query}`);
@@ -101,20 +100,23 @@ export function useTransactionHistory(
           throw new Error(response.error?.message || 'Failed to fetch transaction history');
         }
 
-        setState((s) => ({
-          ...s,
-          transactions: response.data.tips || [],
-          total: response.data.total || 0,
-          page: response.data.page || page,
-          pageSize: response.data.pageSize || pageSize,
-          lastUpdated: Date.now(),
-          loading: false,
-        }));
+        setState((s) => {
+          const d = response.data as any;
+          return {
+            ...s,
+            transactions: d.tips || [],
+            total: d.total || 0,
+            page: d.page || page,
+            pageSize: d.pageSize || pageSize,
+            lastUpdated: Date.now(),
+            loading: false,
+          };
+        });
 
         setLastOptions({ page, pageSize });
         setCreatorId(creator);
 
-        return response.data.tips || [];
+        return (response.data as any).tips || [];
       } catch (err) {
         const error = err instanceof Error ? err.message : 'Failed to fetch history';
         setState((s) => ({ ...s, error, loading: false }));

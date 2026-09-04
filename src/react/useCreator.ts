@@ -11,7 +11,7 @@ import {
   CreateCreatorRequest,
   UpdateCreatorRequest,
 } from '../types/models';
-import { ApiError } from '../types/app';
+import { ApiError } from '../types/errors';
 import { useDorisio } from './provider';
 
 interface UseCreatorState {

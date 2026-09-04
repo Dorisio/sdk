@@ -77,29 +77,28 @@ export function useCreatorBalance(
         const earningsResponse = await client.request('GET', `/api/v1/creators/${id}/earnings`);
 
         if (!earningsResponse.success || !earningsResponse.data) {
-          throw new Error(
-            earningsResponse.error?.message || 'Failed to fetch creator earnings'
-          );
+          throw new Error(earningsResponse.error?.message || 'Failed to fetch creator earnings');
         }
 
         let balance: CreatorBalance = {
-          totalEarnings: earningsResponse.data.totalEarnings || 0,
-          pendingBalance: earningsResponse.data.pendingBalance || 0,
+          totalEarnings: (earningsResponse.data as any).totalEarnings || 0,
+          pendingBalance: (earningsResponse.data as any).pendingBalance || 0,
         };
 
         // Optionally fetch wallet balance
         if (walletId) {
           try {
-            const balanceResponse = await client.request(
+            const balanceResponse = await client.request<any>(
               'GET',
               `/api/v1/wallet/${walletId}/balance`
             );
 
             if (balanceResponse.success && balanceResponse.data) {
+              const d = balanceResponse.data;
               balance = {
                 ...balance,
-                lumens: balanceResponse.data.lumens,
-                usdc: balanceResponse.data.usdc,
+                lumens: d.lumens,
+                usdc: d.usdc,
               };
             }
           } catch (err) {

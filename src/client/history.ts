@@ -6,7 +6,7 @@
 
 import { TransactionHistory, TransactionStats } from '../types/models';
 import {
-  normalizeTransactionHistory,
+  normalizeTransactionHistoryResponse,
   calculateTransactionStats,
   filterTransactionsByStatus,
   filterTransactionsByDateRange,

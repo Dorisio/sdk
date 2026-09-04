@@ -25,17 +25,18 @@ export interface AccountBalance {
  * Get user's total balance across all wallets
  */
 export async function getBalance(this: DorisioClient, userId: string): Promise<AccountBalance> {
-  const response = await this.request('GET', `/users/${userId}/balance`);
+  const response = await this.request<AccountBalance>('GET', `/users/${userId}/balance`);
 
   if (!response.success || !response.data) {
     throw new Error(`Failed to fetch balance for user: ${userId}`);
   }
 
+  const data = response.data;
   return {
-    total: response.data.total || 0,
-    available: response.data.available || 0,
-    pending: response.data.pending || 0,
-    wallets: (response.data.wallets || []).map((w: any) => ({
+    total: data.total || 0,
+    available: data.available || 0,
+    pending: data.pending || 0,
+    wallets: (data.wallets || []).map((w: BalanceInfo) => ({
       walletId: w.walletId,
       available: w.available || 0,
       pending: w.pending || 0,
@@ -52,18 +53,19 @@ export async function getWalletBalance(
   this: DorisioClient,
   walletId: string
 ): Promise<BalanceInfo> {
-  const response = await this.request('GET', `/wallets/${walletId}/balance`);
+  const response = await this.request<BalanceInfo>('GET', `/wallets/${walletId}/balance`);
 
   if (!response.success || !response.data) {
     throw new Error(`Failed to fetch wallet balance: ${walletId}`);
   }
 
+  const data = response.data;
   return {
     walletId,
-    available: response.data.available || 0,
-    pending: response.data.pending || 0,
-    total: (response.data.available || 0) + (response.data.pending || 0),
-    currency: response.data.currency || 'USDC',
+    available: data.available || 0,
+    pending: data.pending || 0,
+    total: (data.available || 0) + (data.pending || 0),
+    currency: data.currency || 'USDC',
   };
 }
 
@@ -78,16 +80,21 @@ export async function getCreatorPendingPayout(
   nextPayoutDate?: string;
   minimumThreshold: number;
 }> {
-  const response = await this.request('GET', `/creators/${creatorId}/payout-pending`);
+  const response = await this.request<{
+    pending: number;
+    nextPayoutDate?: string;
+    minimumThreshold: number;
+  }>('GET', `/creators/${creatorId}/payout-pending`);
 
   if (!response.success || !response.data) {
     throw new Error(`Failed to fetch pending payout for creator: ${creatorId}`);
   }
 
+  const data = response.data;
   return {
-    pending: response.data.pending || 0,
-    nextPayoutDate: response.data.nextPayoutDate,
-    minimumThreshold: response.data.minimumThreshold || 10,
+    pending: data.pending || 0,
+    nextPayoutDate: data.nextPayoutDate,
+    minimumThreshold: data.minimumThreshold || 10,
   };
 }
 
@@ -116,21 +123,22 @@ export async function getAccountSummary(this: DorisioClient): Promise<{
   totalEarnings?: number;
   lastActivityDate?: string;
 }> {
-  const response = await this.request('GET', '/users/me/summary');
+  const response = await this.request<any>('GET', '/users/me/summary');
 
   if (!response.success || !response.data) {
     throw new Error('Failed to fetch account summary');
   }
 
+  const data = response.data;
   return {
-    userId: response.data.userId,
-    email: response.data.email,
-    role: response.data.role || 'fan',
+    userId: data.userId,
+    email: data.email,
+    role: data.role || 'fan',
     balance: {
-      total: response.data.balance?.total || 0,
-      available: response.data.balance?.available || 0,
-      pending: response.data.balance?.pending || 0,
-      wallets: (response.data.balance?.wallets || []).map((w: any) => ({
+      total: data.balance?.total || 0,
+      available: data.balance?.available || 0,
+      pending: data.balance?.pending || 0,
+      wallets: (data.balance?.wallets || []).map((w: any) => ({
         walletId: w.walletId,
         available: w.available || 0,
         pending: w.pending || 0,
@@ -138,8 +146,8 @@ export async function getAccountSummary(this: DorisioClient): Promise<{
         currency: w.currency || 'USDC',
       })),
     },
-    totalTipsSent: response.data.totalTipsSent,
-    totalEarnings: response.data.totalEarnings,
-    lastActivityDate: response.data.lastActivityDate,
+    totalTipsSent: data.totalTipsSent,
+    totalEarnings: data.totalEarnings,
+    lastActivityDate: data.lastActivityDate,
   };
 }

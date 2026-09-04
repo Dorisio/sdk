@@ -26,5 +26,4 @@ export {
   type UseTransactionHistoryActions,
 } from './useTransactionHistory';
 export { useCreator } from './useCreator';
-export { useTransaction } from './useTransaction';
 export { useUser } from './useUser';

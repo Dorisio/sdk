@@ -39,16 +39,21 @@ export async function requestCreatorVerification(
     description?: string;
   }
 ): Promise<VerificationStatus> {
-  const response = await this.request('POST', `/creators/${creatorId}/request-verification`, data);
+  const response = await this.request<any>(
+    'POST',
+    `/creators/${creatorId}/request-verification`,
+    data
+  );
 
   if (!response.success || !response.data) {
     throw new Error(`Failed to request verification for creator: ${creatorId}`);
   }
 
+  const d = response.data;
   return {
-    verified: response.data.verified || false,
-    verifiedAt: response.data.verifiedAt,
-    expiresAt: response.data.expiresAt,
+    verified: d.verified || false,
+    verifiedAt: d.verifiedAt,
+    expiresAt: d.expiresAt,
   };
 }
 
@@ -59,17 +64,18 @@ export async function getCreatorVerificationStatus(
   this: DorisioClient,
   creatorId: string
 ): Promise<VerificationStatus & { status: string }> {
-  const response = await this.request('GET', `/creators/${creatorId}/verification-status`);
+  const response = await this.request<any>('GET', `/creators/${creatorId}/verification-status`);
 
   if (!response.success || !response.data) {
     throw new Error(`Failed to fetch verification status for creator: ${creatorId}`);
   }
 
+  const d = response.data;
   return {
-    verified: response.data.verified || false,
-    verifiedAt: response.data.verifiedAt,
-    expiresAt: response.data.expiresAt,
-    status: response.data.status || 'unverified', // pending, verified, rejected, expired
+    verified: d.verified || false,
+    verifiedAt: d.verifiedAt,
+    expiresAt: d.expiresAt,
+    status: d.status || 'unverified',
   };
 }
 
@@ -97,16 +103,17 @@ export async function getWalletVerificationStatus(
   this: DorisioClient,
   walletId: string
 ): Promise<VerificationStatus> {
-  const response = await this.request('GET', `/wallets/${walletId}/verification-status`);
+  const response = await this.request<any>('GET', `/wallets/${walletId}/verification-status`);
 
   if (!response.success || !response.data) {
     throw new Error(`Failed to fetch verification status for wallet: ${walletId}`);
   }
 
+  const d = response.data;
   return {
-    verified: response.data.verified || false,
-    verifiedAt: response.data.verifiedAt,
-    expiresAt: response.data.expiresAt,
+    verified: d.verified || false,
+    verifiedAt: d.verifiedAt,
+    expiresAt: d.expiresAt,
   };
 }
 
@@ -117,15 +124,16 @@ export async function requestWalletVerificationChallenge(
   this: DorisioClient,
   walletId: string
 ): Promise<{ challenge: string; expiresIn: number }> {
-  const response = await this.request('POST', `/wallets/${walletId}/verification-challenge`);
+  const response = await this.request<any>('POST', `/wallets/${walletId}/verification-challenge`);
 
   if (!response.success || !response.data) {
     throw new Error(`Failed to request verification challenge for wallet: ${walletId}`);
   }
 
+  const d = response.data;
   return {
-    challenge: response.data.challenge,
-    expiresIn: response.data.expiresIn || 300, // 5 minutes default
+    challenge: d.challenge,
+    expiresIn: d.expiresIn || 300,
   };
 }
 

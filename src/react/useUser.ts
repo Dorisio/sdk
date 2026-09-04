@@ -6,7 +6,7 @@
 
 import { useState, useCallback } from 'react';
 import { User, UserProfile, UpdateUserRequest } from '../types/models';
-import { ApiError } from '../types/app';
+import { ApiError } from '../types/errors';
 import { useDorisio } from './provider';
 
 interface UseUserState {

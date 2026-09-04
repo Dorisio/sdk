@@ -23,4 +23,14 @@ export type {
   TransactionStats,
 } from './models';
 
-export type { TipRequest, CreateTipRequest } from './schemas';
+export type { TipRequest, CreateTipRequest } from './requests';
+export type { ApiResponse, PaginationMeta, PaginatedResponse } from './api';
+export {
+  ApiError,
+  ValidationError,
+  AuthenticationError,
+  AuthorizationError,
+  NotFoundError,
+  NetworkError,
+  TimeoutError,
+} from './errors';

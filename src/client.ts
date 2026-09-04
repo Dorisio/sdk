@@ -24,7 +24,7 @@ export interface ClientConfig {
 }
 
 export class DorisioClient {
-  private config: Required<ClientConfig>;
+  private config: ClientConfig & { timeout: number };
   private httpClient: HttpClient;
   private token?: string;
 
@@ -158,7 +158,7 @@ export class DorisioClient {
   /**
    * Get current config
    */
-  getConfig(): Readonly<ClientConfig> {
+  getConfig(): Readonly<ClientConfig & { timeout: number }> {
     return { ...this.config };
   }
 
@@ -185,7 +185,10 @@ export class DorisioClient {
   declare buildPaymentTransaction: (tipId: string, data: any) => Promise<any>;
   declare submitPaymentTransaction: (tipId: string, data: any) => Promise<any>;
   declare checkTransactionConfirmation: (tipId: string) => Promise<Transaction>;
-  declare updateTipStatus: (tipId: string, status: string) => Promise<Transaction>;
+  declare updateTipStatus: (
+    tipId: string,
+    status: 'pending' | 'completed' | 'failed' | 'cancelled'
+  ) => Promise<Transaction>;
 
   // History methods
   declare getFullTransactionHistory: (options?: any) => Promise<any>;

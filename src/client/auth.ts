@@ -132,11 +132,12 @@ export async function getSessionExpiry(this: DorisioClient): Promise<{
     throw new Error('Failed to fetch session expiry');
   }
 
-  const expiresIn = Math.max(0, response.data.expiresIn || 0);
+  const d = response.data as any;
+  const expiresIn = Math.max(0, d.expiresIn || 0);
   const isExpired = expiresIn <= 0;
 
   return {
-    expiresAt: response.data.expiresAt,
+    expiresAt: d.expiresAt,
     expiresIn,
     isExpired,
   };

@@ -8,10 +8,19 @@
 export const SDK_VERSION = '0.1.0';
 
 // Re-export client and utilities
-export { DorisioClient } from './client';
+export { DorisioClient, type ClientConfig } from './client';
 
 // Re-export types
-export type { ApiResponse, ApiError, ClientConfig } from './types';
+export type { ApiResponse, PaginationMeta, PaginatedResponse } from './types/api';
+export {
+  ApiError,
+  ValidationError,
+  AuthenticationError,
+  AuthorizationError,
+  NotFoundError,
+  NetworkError,
+  TimeoutError,
+} from './types/errors';
 
 // Re-export domain models
 export type {
@@ -56,7 +65,6 @@ export {
   normalizeWallets,
   normalizeTransaction,
   normalizeTransactions,
-  normalizeTransactionHistory,
 } from './utils/normalizers';
 
 // Re-export transaction normalizers
