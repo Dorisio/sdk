@@ -73,9 +73,11 @@ export class DorisioClient {
     this.createTip = transactionMethods.createTip.bind(this);
     this.getTipStatus = transactionMethods.getTipStatus.bind(this);
     this.getTransactionHistory = transactionMethods.getTransactionHistory.bind(this);
-    this.getUserTipsSent = transactionMethods.getUserTipsSent.bind(this);
     this.getCreatorTipsReceived = transactionMethods.getCreatorTipsReceived.bind(this);
-    this.retryTransaction = transactionMethods.retryTransaction.bind(this);
+    this.buildPaymentTransaction = transactionMethods.buildPaymentTransaction.bind(this);
+    this.submitPaymentTransaction = transactionMethods.submitPaymentTransaction.bind(this);
+    this.checkTransactionConfirmation = transactionMethods.checkTransactionConfirmation.bind(this);
+    this.updateTipStatus = transactionMethods.updateTipStatus.bind(this);
 
     // History methods
     this.getFullTransactionHistory = historyMethods.getFullTransactionHistory.bind(this);
@@ -179,9 +181,11 @@ export class DorisioClient {
   declare createTip: (data: any) => Promise<Transaction>;
   declare getTipStatus: (transactionId: string) => Promise<Transaction>;
   declare getTransactionHistory: (options?: any) => Promise<any>;
-  declare getUserTipsSent: (userId: string, options?: any) => Promise<any>;
   declare getCreatorTipsReceived: (creatorId: string, options?: any) => Promise<any>;
-  declare retryTransaction: (transactionId: string) => Promise<Transaction>;
+  declare buildPaymentTransaction: (tipId: string, data: any) => Promise<any>;
+  declare submitPaymentTransaction: (tipId: string, data: any) => Promise<any>;
+  declare checkTransactionConfirmation: (tipId: string) => Promise<Transaction>;
+  declare updateTipStatus: (tipId: string, status: string) => Promise<Transaction>;
 
   // History methods
   declare getFullTransactionHistory: (options?: any) => Promise<any>;
