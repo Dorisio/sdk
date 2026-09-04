@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useTipForge } from './TipForgeProvider';
+import { useTipForge } from './DorisioProvider';
 import { Transaction } from '../types/models';
 import type { CreateTipRequest, BuildTransactionRequest } from '../client/transactions';
 

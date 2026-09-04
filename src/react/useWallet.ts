@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useTipForge } from './TipForgeProvider';
+import { useTipForge } from './DorisioProvider';
 import { Wallet } from '../types/models';
 
 export interface UseWalletState {

@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { useTipForge } from './TipForgeProvider';
+import { useTipForge } from './DorisioProvider';
 import { Transaction } from '../types/models';
 
 export interface TransactionHistoryOptions {

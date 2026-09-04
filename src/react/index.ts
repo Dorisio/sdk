@@ -5,14 +5,13 @@
  * Provides hooks for client-side usage in React applications.
  */
 
-export { DorisioProvider, useDorisio } from './provider';
 export {
-  TipForgeProvider,
-  useTipForge,
-  type TipForgeContextValue,
+  DorisioProvider,
+  useDorisio,
+  type DorisioContextValue,
   type AuthState,
   type ErrorState,
-} from './TipForgeProvider';
+} from './DorisioProvider';
 export { useCreateTip, type UseCreateTipState, type UseCreateTipActions } from './useCreateTip';
 export { useWallet, type UseWalletState, type UseWalletActions } from './useWallet';
 export {

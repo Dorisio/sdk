@@ -1,7 +1,7 @@
 /**
- * TipForgeProvider
+ * DorisioProvider
  *
- * Comprehensive React context provider for Dorisio/TipForge integration.
+ * Comprehensive React context provider for Dorisio integration.
  * Manages client configuration, authentication state, error boundaries, and global state.
  */
 
@@ -28,9 +28,9 @@ export interface ErrorState {
 }
 
 /**
- * TipForge context value
+ * Dorisio context value
  */
-export interface TipForgeContextValue {
+export interface DorisioContextValue {
   // Client and configuration
   client: DorisioClient;
   config: ClientConfig;
@@ -50,9 +50,9 @@ export interface TipForgeContextValue {
   setIsLoading: (loading: boolean) => void;
 }
 
-const TipForgeContext = createContext<TipForgeContextValue | null>(null);
+const DorisioContext = createContext<DorisioContextValue | null>(null);
 
-export interface TipForgeProviderProps {
+export interface DorisioProviderProps {
   client: DorisioClient;
   config: ClientConfig;
   initialAuth?: AuthState;
@@ -61,7 +61,7 @@ export interface TipForgeProviderProps {
 }
 
 /**
- * TipForgeProvider
+ * DorisioProvider
  *
  * Main provider for Dorisio SDK integration in React applications.
  * Provides client, authentication state, and error management.
@@ -75,20 +75,20 @@ export interface TipForgeProviderProps {
  *
  * function App() {
  *   return (
- *     <TipForgeProvider client={client} config={client.getConfig()}>
+ *     <DorisioProvider client={client} config={client.getConfig()}>
  *       <YourApp />
- *     </TipForgeProvider>
+ *     </DorisioProvider>
  *   );
  * }
  * ```
  */
-export function TipForgeProvider({
+export function DorisioProvider({
   client,
   config,
   initialAuth,
   onError,
   children,
-}: TipForgeProviderProps): React.ReactElement {
+}: DorisioProviderProps): React.ReactElement {
   // Authentication state
   const [auth, setAuthState] = useState<AuthState>(
     initialAuth || {
@@ -104,14 +104,17 @@ export function TipForgeProvider({
   const [isLoading, setIsLoading] = useState(false);
 
   // Authentication handlers
-  const setAuth = useCallback((newAuth: AuthState) => {
-    setAuthState(newAuth);
+  const setAuth = useCallback(
+    (newAuth: AuthState) => {
+      setAuthState(newAuth);
 
-    // Update client token if provided
-    if (newAuth.token) {
-      client.setToken(newAuth.token);
-    }
-  }, [client]);
+      // Update client token if provided
+      if (newAuth.token) {
+        client.setToken(newAuth.token);
+      }
+    },
+    [client]
+  );
 
   const clearAuth = useCallback(() => {
     setAuthState({
@@ -143,7 +146,7 @@ export function TipForgeProvider({
   }, []);
 
   // Create context value
-  const value: TipForgeContextValue = useMemo(
+  const value: DorisioContextValue = useMemo(
     () => ({
       client,
       config,
@@ -160,31 +163,31 @@ export function TipForgeProvider({
   );
 
   return (
-    <TipForgeContext.Provider value={value}>
+    <DorisioContext.Provider value={value}>
       <ErrorBoundary>{children}</ErrorBoundary>
-    </TipForgeContext.Provider>
+    </DorisioContext.Provider>
   );
 }
 
 /**
- * useTipForge hook
+ * useDorisio hook
  *
- * Get access to TipForge context and client within a component.
- * Must be used within a TipForgeProvider.
+ * Get access to Dorisio context and client within a component.
+ * Must be used within a DorisioProvider.
  *
  * @example
  * ```tsx
  * function MyComponent() {
- *   const { client, auth, setError } = useTipForge();
+ *   const { client, auth, setError } = useDorisio();
  *   // Use client and context...
  * }
  * ```
  */
-export function useTipForge(): TipForgeContextValue {
-  const context = useContext(TipForgeContext);
+export function useDorisio(): DorisioContextValue {
+  const context = useContext(DorisioContext);
 
   if (!context) {
-    throw new Error('useTipForge must be used within TipForgeProvider');
+    throw new Error('useDorisio must be used within DorisioProvider');
   }
 
   return context;
@@ -214,7 +217,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('TipForge Error Boundary caught error:', error, errorInfo);
+    console.error('Dorisio Error Boundary caught error:', error, errorInfo);
   }
 
   render(): ReactNode {
