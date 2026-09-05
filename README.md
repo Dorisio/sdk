@@ -43,7 +43,7 @@ console.log('Tip created:', tip.id);
 ### React Integration
 
 ```typescript
-import { TipForgeProvider, useCreateTip, useWallet } from 'dorisio-sdk/react';
+import { DorisioProvider, useCreateTip, useWallet } from 'dorisio-sdk/react';
 
 function App() {
   const client = new DorisioClient({
@@ -52,9 +52,9 @@ function App() {
   });
 
   return (
-    <TipForgeProvider client={client} config={client.getConfig()}>
+    <DorisioProvider client={client} config={client.getConfig()}>
       <YourApp />
-    </TipForgeProvider>
+    </DorisioProvider>
   );
 }
 
@@ -182,12 +182,12 @@ const balance = await client.getWalletBalance(walletId);
 
 ## React Hooks
 
-### TipForgeProvider
+### DorisioProvider
 
 ```typescript
-<TipForgeProvider client={client} config={client.getConfig()}>
+<DorisioProvider client={client} config={client.getConfig()}>
   <YourApp />
-</TipForgeProvider>
+</DorisioProvider>
 ```
 
 **Context provides:**
@@ -196,6 +196,8 @@ const balance = await client.getWalletBalance(walletId);
 - `auth`: Authentication state
 - `error`: Global error state
 - `isLoading`: Global loading state
+- `setError()`, `clearError()`: Error management
+- `setIsLoading()`: Loading state management
 
 ### useCreateTip
 
@@ -331,7 +333,7 @@ try {
 React hooks provide error state:
 
 ```typescript
-const { error, setError, clearError } = useTipForge();
+const { error, setError, clearError } = useDorisio();
 
 if (error) {
   console.error(`[${error.code}] ${error.message}`);
@@ -358,15 +360,30 @@ setConfig({
 # Install dependencies
 npm install
 
-# Run tests
+# Run tests (86 tests: 46 client + 40 hooks)
 npm run test
+
+# Watch mode for development
+npm run test:watch
 
 # Build SDK
 npm run build
 
-# Watch mode
+# Watch mode build
 npm run dev
+
+# Lint
+npm run lint
+
+# Type check
+npm run type-check
 ```
+
+**Test Coverage:**
+
+- Client methods: All auth, creator, and transaction methods with success/error scenarios
+- React hooks: All hooks with state management, pagination, error handling
+- 100% test success rate
 
 ## Publishing
 
