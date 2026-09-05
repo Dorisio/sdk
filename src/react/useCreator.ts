@@ -12,7 +12,7 @@ import {
   UpdateCreatorRequest,
 } from '../types/models';
 import { ApiError } from '../types/errors';
-import { useDorisio } from './provider';
+import { useDorisio } from './DorisioProvider';
 
 interface UseCreatorState {
   creator: Creator | null;
