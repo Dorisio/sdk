@@ -122,7 +122,7 @@ export function generateMockExport(seed = 1) {
  */
 export function generateMockCreator(seed = 1) {
   const names = ['Alice Creator', 'Bob Developer', 'Carol Artist', 'Dave Musician', 'Eve Designer'];
-  const name = names[Math.floor(seededRandom(seed) * names.length)];
+  const name = names[Math.floor(seededRandom(seed) * names.length)] ?? 'Creator';
 
   const createdAt = new Date(
     Date.UTC(2023, 0, 1) + Math.floor(seededRandom(seed + 4) * 365) * 86400000
@@ -191,8 +191,8 @@ export function generateMockWallet(seed = 1) {
 export function generateMockUser(seed = 1) {
   const firstNames = ['Alice', 'Bob', 'Carol', 'Dave', 'Eve'];
   const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones'];
-  const firstName = firstNames[Math.floor(seededRandom(seed) * firstNames.length)];
-  const lastName = lastNames[Math.floor(seededRandom(seed + 1) * lastNames.length)];
+  const firstName = firstNames[Math.floor(seededRandom(seed) * firstNames.length)] ?? 'User';
+  const lastName = lastNames[Math.floor(seededRandom(seed + 1) * lastNames.length)] ?? 'One';
 
   const createdAt = new Date(
     Date.UTC(2023, 0, 1) + Math.floor(seededRandom(seed + 3) * 365) * 86400000
@@ -213,10 +213,14 @@ export function generateMockUser(seed = 1) {
  * Mock session info generator
  */
 export function generateMockSession(seed = 1) {
+  const user = generateMockUser(seed);
   return {
+    userId: user.id,
+    email: user.email,
     token: `sandbox.jwt.${seededId(seed, 'tok')}`,
-    user: generateMockUser(seed),
-    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    user,
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    expiresIn: 86400,
   };
 }
 
@@ -242,9 +246,25 @@ export function generateMockCreatorEarnings(seed = 1) {
 }
 
 export function generateMockAccountSummary(seed = 1) {
+  const user = generateMockUser(seed);
   return {
-    user: generateMockUser(seed),
-    balance: generateMockCreatorBalance(seed + 1),
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    user,
+    balance: {
+      total: 100,
+      available: 90,
+      pending: 10,
+      wallets: [
+        {
+          walletId: seededId(seed + 2, 'wallet'),
+          available: 90,
+          pending: 10,
+          currency: 'USDC',
+        },
+      ],
+    },
     wallets: [generateMockWallet(seed + 2)],
     recentTips: generateMockTransactionHistory({ seed: seed + 3, count: 5 }),
   };
