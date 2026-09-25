@@ -50,8 +50,8 @@ describe('Sandbox mode', () => {
 
     const history = client.getSandboxHistory();
     expect(history.length).toBeGreaterThanOrEqual(2);
-    expect(history[0].method).toBe('POST');
-    expect(history[0].path).toContain('transactions/tip');
+    expect(history[0]?.method).toBe('POST');
+    expect(history[0]?.path).toContain('transactions/tip');
     expect(history.some((h) => h.path.includes('/users/me'))).toBe(true);
 
     client.clearSandboxHistory();

@@ -36,7 +36,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "docs": "typedoc",
-    "docs:watch": "typedoc --watch"
+    "docs:watch": "typedoc --watch",
+    "generate:openapi": "node --experimental-strip-types src/scripts/generate-openapi.ts"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^12.0.0",

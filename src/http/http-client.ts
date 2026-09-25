@@ -9,6 +9,7 @@
 import { ApiError } from '../types';
 import { InterceptorManager } from './interceptors';
 import { MockRouter, type SandboxHistoryEntry } from '../sandbox/mock-router';
+import { isRequestIdempotent } from './retry-manager';
 
 export type HttpClientMode = 'live' | 'sandbox' | 'production';
 
@@ -18,6 +19,7 @@ export interface RequestOptions {
   body?: Record<string, unknown>;
   timeout?: number;
   retries?: number;
+  isIdempotent?: boolean;
 }
 
 export interface HttpClientOptions {
@@ -140,6 +142,11 @@ export class HttpClient {
 
     let lastError: Error | null = null;
     const attempts = finalOptions.retries ?? this.retryAttempts;
+    const canRetry = isRequestIdempotent({
+      method: finalOptions.method,
+      isIdempotent: finalOptions.isIdempotent,
+      headers,
+    });
 
     for (let attempt = 0; attempt < attempts; attempt++) {
       try {
@@ -156,13 +163,19 @@ export class HttpClient {
         }
 
         const data = (await response.json()) as T;
+
         return await this.interceptors.executeResponseInterceptors(data);
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         await this.interceptors.executeErrorInterceptors(lastError);
 
-        if (error instanceof ApiError && error.statusCode >= 400 && error.statusCode < 500) {
+        if (error instanceof ApiError && error.statusCode !== undefined && error.statusCode >= 400 && error.statusCode < 500) {
           throw error;
+        }
+
+        // Never retry non-idempotent calls (avoids duplicate tips/charges)
+        if (!canRetry) {
+          throw lastError;
         }
 
         if (attempt < attempts - 1) {
