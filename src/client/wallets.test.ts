@@ -18,12 +18,12 @@ describe('Wallet Methods', () => {
       request: mockRequest,
     } as any;
 
-    client.connectWallet = WalletMethods.connectWallet.bind(client);
-    client.disconnectWallet = WalletMethods.disconnectWallet.bind(client);
-    client.getWallets = WalletMethods.getWallets.bind(client);
-    client.getWallet = WalletMethods.getWallet.bind(client);
-    client.updateWallet = WalletMethods.updateWallet.bind(client);
-    client.verifyWallet = WalletMethods.verifyWallet.bind(client as any);
+    client.connectWallet = WalletMethods.connectWallet.bind(client) as any;
+    client.disconnectWallet = WalletMethods.disconnectWallet.bind(client) as any;
+    client.getWallets = WalletMethods.getWallets.bind(client) as any;
+    client.getWallet = WalletMethods.getWallet.bind(client) as any;
+    client.updateWallet = WalletMethods.updateWallet.bind(client) as any;
+    client.verifyWallet = WalletMethods.verifyWallet.bind(client as any) as any;
     (client as any).getBalance = WalletMethods.getBalance.bind(client as any);
 
     mockRequest.mockClear();

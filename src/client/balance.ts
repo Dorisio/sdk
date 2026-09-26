@@ -28,7 +28,16 @@ export interface AccountBalance {
 }
 
 /**
- * Get user's total balance across all wallets
+ * Get user's total balance across all connected wallets.
+ *
+ * @param userId - Unique user ID
+ * @returns Promise resolving to AccountBalance object
+ * @throws Error if user balance query fails
+ * @example
+ * ```ts
+ * const balance = await client.getBalance('user_123');
+ * console.log(balance.total);
+ * ```
  */
 export async function getBalance(this: DorisioClient, userId: string): Promise<AccountBalance> {
   const response = await this.request('GET', `/users/${userId}/balance`);
@@ -53,7 +62,15 @@ export async function getBalance(this: DorisioClient, userId: string): Promise<A
 }
 
 /**
- * Get single wallet balance
+ * Get balance information for a specific single wallet.
+ *
+ * @param walletId - Unique wallet ID
+ * @returns Promise resolving to detailed BalanceInfo
+ * @throws Error if wallet balance query fails
+ * @example
+ * ```ts
+ * const info = await client.getWalletBalance('wallet_123');
+ * ```
  */
 export async function getWalletBalance(
   this: DorisioClient,
@@ -80,7 +97,11 @@ export async function getWalletBalance(
 }
 
 /**
- * Get creator's pending payout
+ * Get creator's pending payout details and minimum threshold.
+ *
+ * @param creatorId - Unique creator ID
+ * @returns Promise resolving to pending payout info
+ * @throws Error if pending payout query fails
  */
 export async function getCreatorPendingPayout(
   this: DorisioClient,
@@ -105,7 +126,11 @@ export async function getCreatorPendingPayout(
 }
 
 /**
- * Check if minimum payout threshold is reached
+ * Check if creator meets minimum payout threshold.
+ *
+ * @param creatorId - Unique creator ID
+ * @returns Promise resolving to boolean
+ * @throws Error if eligibility check fails
  */
 export async function canPayout(this: DorisioClient, creatorId: string): Promise<boolean> {
   const response = await this.request('GET', `/creators/${creatorId}/can-payout`);
@@ -118,7 +143,15 @@ export async function canPayout(this: DorisioClient, creatorId: string): Promise
 }
 
 /**
- * Get account summary with balance and stats
+ * Get account summary including user profile, total balance, and statistics.
+ *
+ * @returns Promise resolving to account summary object
+ * @throws Error if account summary query fails
+ * @example
+ * ```ts
+ * const summary = await client.getAccountSummary();
+ * console.log(summary.email, summary.balance.total);
+ * ```
  */
 export async function getAccountSummary(this: DorisioClient): Promise<{
   userId: string;

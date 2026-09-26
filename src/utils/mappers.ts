@@ -15,64 +15,102 @@ import {
 } from './normalizers';
 
 /**
- * Creator mapper
+ * Creator response mapper.
+ *
+ * @example
+ * ```ts
+ * const creator = CreatorMapper.fromApi(rawResponseData);
+ * ```
  */
 export class CreatorMapper {
   /**
-   * Map backend creator response to SDK model
+   * Map backend creator response to SDK Creator model.
+   *
+   * @param data - Raw API payload
+   * @returns Normalized Creator object
+   * @throws {ZodError} If data schema validation fails
    */
-  static fromApi(data: unknown): Creator {
-    return normalizeCreator(data);
+  static fromApi<TCreator = Creator>(data: unknown): TCreator {
+    return normalizeCreator<TCreator>(data);
   }
 
   /**
-   * Map array of creators
+   * Map array of raw creator responses to SDK Creator models.
+   *
+   * @param data - Array of raw API creator payloads
+   * @returns Array of normalized Creator objects
+   * @throws {ZodError} If data schema validation fails for any element
    */
-  static fromApiArray(data: unknown[]): Creator[] {
-    return data.map((item) => this.fromApi(item));
+  static fromApiArray<TCreator = Creator>(data: unknown[]): TCreator[] {
+    return data.map((item) => this.fromApi<TCreator>(item));
   }
 }
 
 /**
- * User mapper
+ * User response mapper.
+ *
+ * @example
+ * ```ts
+ * const user = UserMapper.fromApi(rawResponseData);
+ * ```
  */
 export class UserMapper {
   /**
-   * Map backend user response to SDK model
+   * Map backend user response to SDK User model.
+   *
+   * @param data - Raw API payload
+   * @returns Normalized User object
+   * @throws {ZodError} If data schema validation fails
    */
-  static fromApi(data: unknown): User {
-    return normalizeUser(data);
+  static fromApi<TUser = User>(data: unknown): TUser {
+    return normalizeUser<TUser>(data);
   }
 }
 
 /**
- * Transaction mapper
+ * Transaction response mapper.
+ *
+ * @example
+ * ```ts
+ * const tx = TransactionMapper.fromApi(rawResponseData);
+ * ```
  */
 export class TransactionMapper {
   /**
-   * Map backend transaction response to SDK model
+   * Map backend transaction response to SDK Transaction model.
+   *
+   * @param data - Raw API payload
+   * @returns Normalized Transaction object
+   * @throws {ZodError} If data schema validation fails
    */
-  static fromApi(data: unknown): Transaction {
-    return normalizeTransaction(data);
+  static fromApi<TTransaction = Transaction>(data: unknown): TTransaction {
+    return normalizeTransaction<TTransaction>(data);
   }
 
   /**
-   * Map array of transactions
+   * Map array of raw transaction responses to SDK Transaction models.
+   *
+   * @param data - Array of raw API transaction payloads
+   * @returns Array of normalized Transaction objects
+   * @throws {ZodError} If data schema validation fails for any element
    */
-  static fromApiArray(data: unknown[]): Transaction[] {
-    return data.map((item) => this.fromApi(item));
+  static fromApiArray<TTransaction = Transaction>(data: unknown[]): TTransaction[] {
+    return data.map((item) => this.fromApi<TTransaction>(item));
   }
 
   /**
-   * Map transaction history response
+   * Map transaction history envelope response.
+   *
+   * @param data - Raw transaction history API payload
+   * @returns TransactionHistory envelope object
    */
-  static mapHistory(data: unknown): TransactionHistory {
+  static mapHistory<TTransaction = Transaction>(data: unknown): TransactionHistory<TTransaction> {
     if (!data || typeof data !== 'object') {
       return { transactions: [], total: 0, page: 1, pageSize: 20 };
     }
     const obj = data as Record<string, unknown>;
     return {
-      transactions: this.fromApiArray(Array.isArray(obj['transactions']) ? obj['transactions'] : []),
+      transactions: this.fromApiArray<TTransaction>(Array.isArray(obj['transactions']) ? obj['transactions'] : []),
       total: Number(obj['total'] ?? 0),
       page: Number(obj['page'] ?? 1),
       pageSize: Number(obj['pageSize'] ?? 20),
@@ -81,30 +119,52 @@ export class TransactionMapper {
 }
 
 /**
- * Wallet mapper
+ * Wallet response mapper.
+ *
+ * @example
+ * ```ts
+ * const wallet = WalletMapper.fromApi(rawResponseData);
+ * ```
  */
 export class WalletMapper {
   /**
-   * Map backend wallet response to SDK model
+   * Map backend wallet response to SDK Wallet model.
+   *
+   * @param data - Raw API payload
+   * @returns Normalized Wallet object
+   * @throws {ZodError} If data schema validation fails
    */
-  static fromApi(data: unknown): Wallet {
-    return normalizeWallet(data);
+  static fromApi<TWallet = Wallet>(data: unknown): TWallet {
+    return normalizeWallet<TWallet>(data);
   }
 
   /**
-   * Map array of wallets
+   * Map array of raw wallet responses to SDK Wallet models.
+   *
+   * @param data - Array of raw API wallet payloads
+   * @returns Array of normalized Wallet objects
+   * @throws {ZodError} If data schema validation fails for any element
    */
-  static fromApiArray(data: unknown[]): Wallet[] {
-    return data.map((item) => this.fromApi(item));
+  static fromApiArray<TWallet = Wallet>(data: unknown[]): TWallet[] {
+    return data.map((item) => this.fromApi<TWallet>(item));
   }
 }
 
 /**
- * Universal mapper
+ * Universal response mapper for dynamic endpoint decoding.
+ *
+ * @example
+ * ```ts
+ * const creator = ResponseMapper.mapResponse(data, 'creator');
+ * ```
  */
 export class ResponseMapper {
   /**
-   * Map response based on type
+   * Map response object based on specified type discriminator.
+   *
+   * @param data - Raw API payload
+   * @param type - Type discriminator string ('creator' | 'user' | 'transaction' | 'wallet')
+   * @returns Mapped domain model instance
    */
   static mapResponse<T>(data: unknown, type: string): T {
     switch (type) {

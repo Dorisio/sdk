@@ -45,6 +45,21 @@ export interface UseWalletActions {
  * Error handling: see {@link runSafely} — actions reject with the original error,
  * report through the provider's `setError` without ever masking it, and always
  * clear loading state.
+ *
+ * @returns Combined wallet state and action functions
+ *
+ * @example
+ * ```tsx
+ * function WalletManager() {
+ *   const { wallets, loading, listWallets, verifyWallet } = useWallet();
+ *
+ *   useEffect(() => {
+ *     listWallets();
+ *   }, [listWallets]);
+ *
+ *   return <div>Wallets count: {wallets.length}</div>;
+ * }
+ * ```
  */
 export function useWallet(): UseWalletState & UseWalletActions {
   const { client, setError, setIsLoading } = useDorisio();

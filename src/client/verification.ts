@@ -19,20 +19,46 @@ export interface VerificationStatus {
 }
 
 /**
- * Verify creator identity (requires proof/admin approval)
+ * Verify creator identity (requires proof/admin approval).
+ *
+ * @param creatorId - Unique identifier of the creator
+ * @returns Promise resolving to verified Creator object
+ * @throws {Error} If verification request fails
+ *
+ * @example
+ * ```ts
+ * const creator = await client.verifyCreator('creator-123');
+ * console.log(creator.verified);
+ * ```
  */
-export async function verifyCreator(this: DorisioClient, creatorId: string): Promise<Creator> {
+export async function verifyCreator<TCreator = Creator>(
+  this: DorisioClient,
+  creatorId: string
+): Promise<TCreator> {
   const response = await this.request('POST', `/creators/${creatorId}/verify`);
 
   if (!response.success || !response.data) {
     throw new Error(`Failed to verify creator: ${creatorId}`);
   }
 
-  return normalizeCreator(response.data);
+  return normalizeCreator(response.data) as TCreator;
 }
 
 /**
- * Request creator verification (submits for review)
+ * Request creator verification (submits documents/description for review).
+ *
+ * @param creatorId - Unique identifier of the creator
+ * @param data - Verification submission payload including document details
+ * @returns Promise resolving to updated VerificationStatus
+ * @throws {Error} If submitting verification request fails
+ *
+ * @example
+ * ```ts
+ * const status = await client.requestCreatorVerification('creator-123', {
+ *   documentType: 'passport',
+ *   documentUrl: 'https://example.com/doc.pdf',
+ * });
+ * ```
  */
 export async function requestCreatorVerification(
   this: DorisioClient,
@@ -62,7 +88,17 @@ export async function requestCreatorVerification(
 }
 
 /**
- * Get creator verification status
+ * Get creator verification status.
+ *
+ * @param creatorId - Unique identifier of the creator
+ * @returns Promise resolving to VerificationStatus with textual status string
+ * @throws {Error} If fetching verification status fails
+ *
+ * @example
+ * ```ts
+ * const status = await client.getCreatorVerificationStatus('creator-123');
+ * console.log(status.verified, status.status);
+ * ```
  */
 export async function getCreatorVerificationStatus(
   this: DorisioClient,
@@ -84,24 +120,47 @@ export async function getCreatorVerificationStatus(
 }
 
 /**
- * Verify wallet ownership (challenge/response)
+ * Verify wallet ownership via optional cryptographic proof.
+ *
+ * @param walletId - Unique identifier of the wallet
+ * @param proof - Optional cryptographic signature proof string
+ * @returns Promise resolving to verified Wallet object
+ * @throws {Error} If wallet verification fails
+ *
+ * @example
+ * ```ts
+ * const wallet = await client.verifyWallet('wallet-123', 'signed_proof_hash');
+ * console.log(wallet.verified);
+ * ```
  */
-export async function verifyWallet(
+export async function verifyWallet<TWallet = Wallet>(
   this: DorisioClient,
   walletId: string,
-  proof: string
-): Promise<Wallet> {
-  const response = await this.request('POST', `/wallets/${walletId}/verify`, { proof });
+  proof?: string
+): Promise<TWallet> {
+  const response = proof
+    ? await this.request('POST', `/wallets/${walletId}/verify`, { proof })
+    : await this.request('POST', `/wallets/${walletId}/verify`);
 
   if (!response.success || !response.data) {
     throw new Error(`Failed to verify wallet: ${walletId}`);
   }
 
-  return normalizeWallet(response.data);
+  return normalizeWallet(response.data) as TWallet;
 }
 
 /**
- * Get wallet verification status
+ * Get wallet verification status.
+ *
+ * @param walletId - Unique identifier of the wallet
+ * @returns Promise resolving to VerificationStatus
+ * @throws {Error} If fetching verification status fails
+ *
+ * @example
+ * ```ts
+ * const status = await client.getWalletVerificationStatus('wallet-123');
+ * console.log(status.verified);
+ * ```
  */
 export async function getWalletVerificationStatus(
   this: DorisioClient,
@@ -122,7 +181,16 @@ export async function getWalletVerificationStatus(
 }
 
 /**
- * Request wallet verification challenge
+ * Request wallet verification challenge.
+ *
+ * @param walletId - Unique identifier of the wallet
+ * @returns Promise resolving to challenge string and expiration duration in seconds
+ * @throws {Error} If requesting challenge fails
+ *
+ * @example
+ * ```ts
+ * const { challenge, expiresIn } = await client.requestWalletVerificationChallenge('wallet-123');
+ * ```
  */
 export async function requestWalletVerificationChallenge(
   this: DorisioClient,
@@ -142,7 +210,16 @@ export async function requestWalletVerificationChallenge(
 }
 
 /**
- * Check if transaction requires verification
+ * Check if transaction is verified.
+ *
+ * @param transactionId - Unique identifier of the transaction
+ * @returns Promise resolving to boolean indicating if transaction is verified
+ * @throws {Error} If checking transaction verification fails
+ *
+ * @example
+ * ```ts
+ * const verified = await client.isTransactionVerified('tx-123');
+ * ```
  */
 export async function isTransactionVerified(
   this: DorisioClient,

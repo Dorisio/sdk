@@ -309,8 +309,7 @@ export class DorisioClient {
    * @returns Promise resolving to updated Creator
    */
   async verifyCreator<TCreator = Creator>(
-    creatorId: string,
-    verified?: boolean
+    creatorId: string
   ): Promise<TCreator> {
     return verificationMethods.verifyCreator.call(this, creatorId) as Promise<TCreator>;
   }

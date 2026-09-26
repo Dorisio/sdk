@@ -35,7 +35,16 @@ export interface PaginationResult<T> {
 }
 
 /**
- * Build query string from options
+ * Build query string from options.
+ *
+ * @param options - Query parameters including limit, offset, cursor, sort order, and filters
+ * @returns Formatted query string starting with '?' or empty string if no parameters
+ *
+ * @example
+ * ```ts
+ * const query = buildQueryString({ limit: 10, sort: 'asc' });
+ * // "?limit=10&sort=asc"
+ * ```
  */
 export function buildQueryString(options: QueryOptions = {}): string {
   const params = new URLSearchParams();
@@ -65,7 +74,16 @@ interface PaginatedApiData {
 }
 
 /**
- * Parse pagination metadata from response
+ * Parse pagination metadata from response.
+ *
+ * @param response - Backend response object containing page/limit/total fields
+ * @returns Parsed pagination metadata object with page, pageSize, total, and hasMore indicator
+ *
+ * @example
+ * ```ts
+ * const meta = parsePaginationMeta({ page: 1, limit: 20, total: 45 });
+ * console.log(meta.hasMore); // true
+ * ```
  */
 export function parsePaginationMeta(response: PaginatedApiData): {
   page: number;
@@ -80,7 +98,17 @@ export function parsePaginationMeta(response: PaginatedApiData): {
 }
 
 /**
- * List tips with filtering and pagination
+ * List tips with filtering and pagination.
+ *
+ * @param client - Client implementing QueryClient interface
+ * @param options - Query filtering and pagination options
+ * @returns Promise resolving to PaginationResult envelope of Transaction items
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * ```ts
+ * const result = await listTips(client, { limit: 10 });
+ * ```
  */
 export async function listTips(
   client: QueryClient,
@@ -114,7 +142,18 @@ export async function listTips(
 }
 
 /**
- * List creator tips with filtering and pagination
+ * List creator tips with filtering and pagination.
+ *
+ * @param client - Client implementing QueryClient interface
+ * @param creatorId - Creator ID filter
+ * @param options - Query filtering and pagination options
+ * @returns Promise resolving to PaginationResult envelope of Transaction items
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * ```ts
+ * const result = await listCreatorTips(client, 'creator-123', { limit: 5 });
+ * ```
  */
 export async function listCreatorTips(
   client: QueryClient,
@@ -149,7 +188,17 @@ export async function listCreatorTips(
 }
 
 /**
- * List creators with filtering and pagination
+ * List creators with filtering and pagination.
+ *
+ * @param client - Client implementing QueryClient interface
+ * @param options - Query filtering and pagination options
+ * @returns Promise resolving to PaginationResult envelope of Creator items
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * ```ts
+ * const creators = await listCreators(client, { limit: 20 });
+ * ```
  */
 export async function listCreators(
   client: QueryClient,
@@ -183,7 +232,17 @@ export async function listCreators(
 }
 
 /**
- * List verified creators
+ * List verified creators.
+ *
+ * @param client - Client implementing QueryClient interface
+ * @param options - Query filtering and pagination options
+ * @returns Promise resolving to PaginationResult envelope of verified Creator items
+ * @throws {Error} If API request fails
+ *
+ * @example
+ * ```ts
+ * const verifiedCreators = await listVerifiedCreators(client);
+ * ```
  */
 export async function listVerifiedCreators(
   client: QueryClient,
@@ -196,7 +255,14 @@ export async function listVerifiedCreators(
 }
 
 /**
- * Paginate through results manually
+ * Paginate through results manually.
+ *
+ * @example
+ * ```ts
+ * const paginator = new Paginator(client, 'creators', { limit: 10 });
+ * const page1 = await paginator.next();
+ * const page2 = await paginator.next();
+ * ```
  */
 export class Paginator<T> {
   private offset = 0;
@@ -205,6 +271,13 @@ export class Paginator<T> {
   private readonly client: QueryClient;
   private readonly filters?: Record<string, string | number | boolean>;
 
+  /**
+   * Create a Paginator instance.
+   *
+   * @param client - QueryClient instance
+   * @param endpoint - Target endpoint ('tips' | 'creators' | 'creator-tips')
+   * @param options - Initial query options
+   */
   constructor(
     client: QueryClient,
     endpoint: 'tips' | 'creators' | 'creator-tips',
@@ -216,26 +289,50 @@ export class Paginator<T> {
     this.filters = options.filters;
   }
 
+  /**
+   * Fetch the next page of results.
+   *
+   * @returns Promise resolving to PaginationResult
+   */
   async next(): Promise<PaginationResult<T>> {
     const result = await this.fetchPage();
     if (result.hasMore) this.offset += this.pageSize;
     return result;
   }
 
+  /**
+   * Fetch the previous page of results.
+   *
+   * @returns Promise resolving to PaginationResult
+   */
   async previous(): Promise<PaginationResult<T>> {
     this.offset = Math.max(0, this.offset - this.pageSize);
     return this.fetchPage();
   }
 
+  /**
+   * Jump to a specific page number (1-indexed).
+   *
+   * @param pageNumber - Page number to fetch
+   * @returns Promise resolving to PaginationResult
+   */
   async goto(pageNumber: number): Promise<PaginationResult<T>> {
     this.offset = (pageNumber - 1) * this.pageSize;
     return this.fetchPage();
   }
 
+  /**
+   * Reset pagination offset to zero.
+   */
   reset(): void {
     this.offset = 0;
   }
 
+  /**
+   * Get current pagination offset.
+   *
+   * @returns Current offset number
+   */
   getOffset(): number {
     return this.offset;
   }
@@ -258,7 +355,17 @@ export class Paginator<T> {
 }
 
 /**
- * Create a paginator for iterating through results
+ * Create a paginator for iterating through results.
+ *
+ * @param client - QueryClient instance
+ * @param endpoint - Target endpoint ('tips' | 'creators' | 'creator-tips')
+ * @param options - Query options
+ * @returns Paginator instance
+ *
+ * @example
+ * ```ts
+ * const paginator = createPaginator(client, 'creators', { limit: 10 });
+ * ```
  */
 export function createPaginator<T>(
   client: QueryClient,

@@ -17,10 +17,10 @@ describe('Creator Methods', () => {
     } as any;
 
     // Bind methods
-    client.getCreator = CreatorMethods.getCreator.bind(client);
-    client.listCreators = CreatorMethods.listCreators.bind(client);
-    client.getCreatorProfile = CreatorMethods.getCreatorProfile.bind(client);
-    client.verifyCreator = CreatorMethods.verifyCreator.bind(client);
+    client.getCreator = CreatorMethods.getCreator.bind(client) as any;
+    client.listCreators = CreatorMethods.listCreators.bind(client) as any;
+    client.getCreatorProfile = CreatorMethods.getCreatorProfile.bind(client) as any;
+    client.verifyCreator = CreatorMethods.verifyCreator.bind(client) as any;
 
     mockRequest.mockClear();
   });

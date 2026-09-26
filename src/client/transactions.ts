@@ -98,7 +98,10 @@ export interface SubmitTransactionResponse {
  * console.log(tip.id);
  * ```
  */
-export async function createTip(this: DorisioClient, data: CreateTipRequest): Promise<Transaction> {
+export async function createTip<TTransaction = Transaction>(
+  this: DorisioClient,
+  data: CreateTipRequest
+): Promise<TTransaction> {
   if (!data.creatorId) {
     throw new Error('Creator ID is required to create a tip');
   }
@@ -130,7 +133,7 @@ export async function createTip(this: DorisioClient, data: CreateTipRequest): Pr
     throw new Error(response.error?.message || 'Failed to create tip');
   }
 
-  return normalizeTransaction(response.data);
+  return normalizeTransaction(response.data) as TTransaction;
 }
 
 /**
@@ -150,17 +153,17 @@ export async function createTip(this: DorisioClient, data: CreateTipRequest): Pr
  * console.log(transaction.status); // 'pending' | 'confirmed' | 'failed'
  * ```
  */
-export async function getTipStatus(
+export async function getTipStatus<TTransaction = Transaction>(
   this: DorisioClient,
   transactionId: string
-): Promise<Transaction> {
+): Promise<TTransaction> {
   const response = await this.request('GET', `/api/v1/transactions/${transactionId}`);
 
   if (!response.success || !response.data) {
     throw new Error(response.error?.message || `Failed to fetch transaction: ${transactionId}`);
   }
 
-  return normalizeTransaction(response.data);
+  return normalizeTransaction(response.data) as TTransaction;
 }
 
 /**
@@ -357,28 +360,28 @@ export async function submitPaymentTransaction(
  * }
  * ```
  */
-export async function checkTransactionConfirmation(
+export async function checkTransactionConfirmation<TTransaction = Transaction>(
   this: DorisioClient,
   tipId: string
-): Promise<Transaction> {
+): Promise<TTransaction> {
   const response = await this.request('GET', `/api/v1/transactions/${tipId}/confirm`);
 
   if (!response.success || !response.data) {
     throw new Error(response.error?.message || 'Failed to check transaction confirmation');
   }
 
-  return normalizeTransaction(response.data);
+  return normalizeTransaction(response.data) as TTransaction;
 }
 
 /**
  * Update tip status (typically used by backend confirmation service)
  * PATCH /api/v1/transactions/:id/status
  */
-export async function updateTipStatus(
+export async function updateTipStatus<TTransaction = Transaction>(
   this: DorisioClient,
   tipId: string,
   status: 'pending' | 'completed' | 'failed' | 'cancelled'
-): Promise<Transaction> {
+): Promise<TTransaction> {
   const response = await this.request('PATCH', `/api/v1/transactions/${tipId}/status`, {
     status,
   });
@@ -387,5 +390,5 @@ export async function updateTipStatus(
     throw new Error(response.error?.message || 'Failed to update tip status');
   }
 
-  return normalizeTransaction(response.data);
+  return normalizeTransaction(response.data) as TTransaction;
 }

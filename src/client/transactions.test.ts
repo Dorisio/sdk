@@ -20,15 +20,15 @@ describe('Transaction Methods', () => {
     } as any;
 
     // Bind methods to client
-    client.createTip = TransactionMethods.createTip.bind(client);
-    client.getTipStatus = TransactionMethods.getTipStatus.bind(client);
-    client.getTransactionHistory = TransactionMethods.getTransactionHistory.bind(client);
-    client.getCreatorTipsReceived = TransactionMethods.getCreatorTipsReceived.bind(client);
-    client.buildPaymentTransaction = TransactionMethods.buildPaymentTransaction.bind(client);
-    client.submitPaymentTransaction = TransactionMethods.submitPaymentTransaction.bind(client);
+    client.createTip = TransactionMethods.createTip.bind(client) as any;
+    client.getTipStatus = TransactionMethods.getTipStatus.bind(client) as any;
+    client.getTransactionHistory = TransactionMethods.getTransactionHistory.bind(client) as any;
+    client.getCreatorTipsReceived = TransactionMethods.getCreatorTipsReceived.bind(client) as any;
+    client.buildPaymentTransaction = TransactionMethods.buildPaymentTransaction.bind(client) as any;
+    client.submitPaymentTransaction = TransactionMethods.submitPaymentTransaction.bind(client) as any;
     client.checkTransactionConfirmation =
-      TransactionMethods.checkTransactionConfirmation.bind(client);
-    client.updateTipStatus = TransactionMethods.updateTipStatus.bind(client);
+      TransactionMethods.checkTransactionConfirmation.bind(client) as any;
+    client.updateTipStatus = TransactionMethods.updateTipStatus.bind(client) as any;
 
     mockRequest.mockClear();
   });

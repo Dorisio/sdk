@@ -21,13 +21,13 @@ describe('Auth Methods', () => {
     } as any;
 
     // Bind methods
-    client.refreshSession = AuthMethods.refreshSession.bind(client);
-    client.validateSession = AuthMethods.validateSession.bind(client);
-    client.getCurrentUser = AuthMethods.getCurrentUser.bind(client);
-    client.logout = AuthMethods.logout.bind(client);
-    client.isAuthenticated = AuthMethods.isAuthenticated.bind(client);
-    client.extendSession = AuthMethods.extendSession.bind(client);
-    client.getSessionExpiry = AuthMethods.getSessionExpiry.bind(client);
+    client.refreshSession = AuthMethods.refreshSession.bind(client) as any;
+    client.validateSession = AuthMethods.validateSession.bind(client) as any;
+    client.getCurrentUser = AuthMethods.getCurrentUser.bind(client) as any;
+    client.logout = AuthMethods.logout.bind(client) as any;
+    client.isAuthenticated = AuthMethods.isAuthenticated.bind(client) as any;
+    client.extendSession = AuthMethods.extendSession.bind(client) as any;
+    client.getSessionExpiry = AuthMethods.getSessionExpiry.bind(client) as any;
 
     mockRequest.mockClear();
     mockSetToken.mockClear();

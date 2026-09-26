@@ -102,8 +102,17 @@ export function normalizeCreateTipInput(data: unknown): CreateTipInput {
 /**
  * Normalize creator from raw API response.
  * Validates against ApiCreatorSchema before mapping.
+ *
+ * @param data - Raw creator API payload
+ * @returns Normalized Creator model object
+ * @throws {ZodError} If raw data does not match ApiCreatorSchema
+ *
+ * @example
+ * ```ts
+ * const creator = normalizeCreator(rawData);
+ * ```
  */
-export function normalizeCreator(data: unknown): Creator {
+export function normalizeCreator<TCreator = Creator>(data: unknown): TCreator {
   const parsed = ApiCreatorSchema.parse(data);
   return {
     id: parsed.id,
@@ -118,24 +127,41 @@ export function normalizeCreator(data: unknown): Creator {
     pendingBalance: parsed.pendingBalance,
     createdAt: parsed.createdAt,
     updatedAt: parsed.updatedAt,
-  };
+  } as unknown as TCreator;
 }
 
 /**
  * Normalize array of creators.
+ *
+ * @param data - Raw array payload
+ * @returns Array of normalized Creator objects
+ *
+ * @example
+ * ```ts
+ * const creators = normalizeCreators(rawArray);
+ * ```
  */
-export function normalizeCreators(data: unknown): Creator[] {
+export function normalizeCreators<TCreator = Creator>(data: unknown): TCreator[] {
   if (!Array.isArray(data)) {
     return [];
   }
-  return data.map(normalizeCreator);
+  return data.map((item) => normalizeCreator<TCreator>(item));
 }
 
 /**
  * Normalize user from raw API response.
  * Validates against ApiUserSchema before mapping.
+ *
+ * @param data - Raw user API payload
+ * @returns Normalized User model object
+ * @throws {ZodError} If raw data does not match ApiUserSchema
+ *
+ * @example
+ * ```ts
+ * const user = normalizeUser(rawData);
+ * ```
  */
-export function normalizeUser(data: unknown): User {
+export function normalizeUser<TUser = User>(data: unknown): TUser {
   const parsed = ApiUserSchema.parse(data);
   return {
     id: parsed.id,
@@ -146,14 +172,23 @@ export function normalizeUser(data: unknown): User {
     avatar: parsed.avatar ?? null,
     createdAt: parsed.createdAt,
     updatedAt: parsed.updatedAt,
-  };
+  } as unknown as TUser;
 }
 
 /**
  * Normalize wallet from raw API response.
  * Validates against ApiWalletSchema before mapping.
+ *
+ * @param data - Raw wallet API payload
+ * @returns Normalized Wallet model object
+ * @throws {ZodError} If raw data does not match ApiWalletSchema
+ *
+ * @example
+ * ```ts
+ * const wallet = normalizeWallet(rawData);
+ * ```
  */
-export function normalizeWallet(data: unknown): Wallet {
+export function normalizeWallet<TWallet = Wallet>(data: unknown): TWallet {
   const parsed = ApiWalletSchema.parse(data);
   return {
     id: parsed.id,
@@ -163,24 +198,41 @@ export function normalizeWallet(data: unknown): Wallet {
     verified: parsed.verified,
     createdAt: parsed.createdAt,
     updatedAt: parsed.updatedAt,
-  };
+  } as unknown as TWallet;
 }
 
 /**
  * Normalize array of wallets.
+ *
+ * @param data - Raw array payload
+ * @returns Array of normalized Wallet objects
+ *
+ * @example
+ * ```ts
+ * const wallets = normalizeWallets(rawArray);
+ * ```
  */
-export function normalizeWallets(data: unknown): Wallet[] {
+export function normalizeWallets<TWallet = Wallet>(data: unknown): TWallet[] {
   if (!Array.isArray(data)) {
     return [];
   }
-  return data.map(normalizeWallet);
+  return data.map((item) => normalizeWallet<TWallet>(item));
 }
 
 /**
  * Normalize transaction from raw API response.
  * Validates against ApiTransactionSchema before mapping.
+ *
+ * @param data - Raw transaction API payload
+ * @returns Normalized Transaction model object
+ * @throws {ZodError} If raw data does not match ApiTransactionSchema
+ *
+ * @example
+ * ```ts
+ * const tx = normalizeTransaction(rawData);
+ * ```
  */
-export function normalizeTransaction(data: unknown): Transaction {
+export function normalizeTransaction<TTransaction = Transaction>(data: unknown): TTransaction {
   const parsed = ApiTransactionSchema.parse(data);
 
   // Map 'completed' (used by updateTipStatus endpoint) to 'confirmed' for the domain model
@@ -200,27 +252,44 @@ export function normalizeTransaction(data: unknown): Transaction {
     stellarTxHash: parsed.stellarTxHash ?? null,
     createdAt: parsed.createdAt,
     updatedAt: parsed.updatedAt,
-  };
+  } as unknown as TTransaction;
 }
 
 /**
  * Normalize array of transactions.
+ *
+ * @param data - Raw array payload
+ * @returns Array of normalized Transaction objects
+ *
+ * @example
+ * ```ts
+ * const transactions = normalizeTransactions(rawArray);
+ * ```
  */
-export function normalizeTransactions(data: unknown): Transaction[] {
+export function normalizeTransactions<TTransaction = Transaction>(data: unknown): TTransaction[] {
   if (!Array.isArray(data)) {
     return [];
   }
-  return data.map(normalizeTransaction);
+  return data.map((item) => normalizeTransaction<TTransaction>(item));
 }
 
 /**
  * Normalize transaction history response.
  * Validates the entire envelope (including nested transactions) via Zod.
+ *
+ * @param data - Raw transaction history payload
+ * @returns TransactionHistory envelope object
+ * @throws {ZodError} If schema validation fails
+ *
+ * @example
+ * ```ts
+ * const history = normalizeTransactionHistory(rawData);
+ * ```
  */
-export function normalizeTransactionHistory(data: unknown): TransactionHistory {
+export function normalizeTransactionHistory<TTransaction = Transaction>(data: unknown): TransactionHistory<TTransaction> {
   const parsed = ApiTransactionHistorySchema.parse(data);
   return {
-    transactions: parsed.transactions.map(normalizeTransaction),
+    transactions: parsed.transactions.map((tx) => normalizeTransaction<TTransaction>(tx)),
     total: parsed.total,
     page: parsed.page,
     pageSize: parsed.pageSize,
@@ -230,16 +299,25 @@ export function normalizeTransactionHistory(data: unknown): TransactionHistory {
 /**
  * Normalize paginated list-creators response.
  * Validates through ApiListCreatorsSchema before mapping.
+ *
+ * @param data - Raw list-creators API payload
+ * @returns Envelope containing creators array, total count, page, and pageSize
+ * @throws {ZodError} If schema validation fails
+ *
+ * @example
+ * ```ts
+ * const result = normalizeListCreatorsResponse(rawData);
+ * ```
  */
-export function normalizeListCreatorsResponse(data: unknown): {
-  creators: Creator[];
+export function normalizeListCreatorsResponse<TCreator = Creator>(data: unknown): {
+  creators: TCreator[];
   total: number;
   page: number;
   pageSize: number;
 } {
   const parsed = ApiListCreatorsSchema.parse(data);
   return {
-    creators: parsed.creators.map(normalizeCreator),
+    creators: parsed.creators.map((c) => normalizeCreator<TCreator>(c)),
     total: parsed.total,
     page: parsed.page,
     pageSize: parsed.pageSize,

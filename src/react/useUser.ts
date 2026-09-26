@@ -25,8 +25,24 @@ interface UseUserActions {
 }
 
 /**
- * useUser hook
- * Manages user state and operations
+ * React hook for user and fan profile operations.
+ *
+ * @returns Combined user state (user, profile, loading, error, isAuthenticated) and action functions (fetchUser, fetchCurrentUser, updateUser, clearError)
+ *
+ * @example
+ * ```tsx
+ * function UserProfileComponent() {
+ *   const { user, loading, error, fetchCurrentUser } = useUser();
+ *
+ *   useEffect(() => {
+ *     fetchCurrentUser();
+ *   }, [fetchCurrentUser]);
+
+ *   if (loading) return <div>Loading...</div>;
+ *   if (error) return <div>Error: {error.message}</div>;
+ *   return <div>Welcome {user?.name}</div>;
+ * }
+ * ```
  */
 export function useUser(): UseUserState & UseUserActions {
   const { client, setError: setParentError } = useDorisio();

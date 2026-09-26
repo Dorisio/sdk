@@ -45,27 +45,27 @@ export async function refreshSession(this: DorisioClient): Promise<SessionInfo> 
 /**
  * Validate current session
  */
-export async function validateSession(this: DorisioClient): Promise<User> {
+export async function validateSession<TUser = User>(this: DorisioClient): Promise<TUser> {
   const response = await this.request('GET', '/auth/validate');
 
   if (!response.success || !response.data) {
     throw new Error('Invalid or expired session');
   }
 
-  return normalizeUser(response.data);
+  return normalizeUser(response.data) as TUser;
 }
 
 /**
  * Get current user info
  */
-export async function getCurrentUser(this: DorisioClient): Promise<User> {
+export async function getCurrentUser<TUser = User>(this: DorisioClient): Promise<TUser> {
   const response = await this.request('GET', '/users/me');
 
   if (!response.success || !response.data) {
     throw new Error('Failed to fetch current user');
   }
 
-  return normalizeUser(response.data);
+  return normalizeUser(response.data) as TUser;
 }
 
 /**

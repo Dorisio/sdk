@@ -42,6 +42,10 @@ export interface UseCreatorBalanceActions {
  * exposed via `error` and logged to the console rather than raised as unhandled
  * rejections; manual `fetchBalance()` / `refetch()` calls reject with the original error.
  *
+ * @param initialCreatorId - Optional creator ID to automatically fetch balance on mount
+ * @param autoFetch - Whether to automatically fetch balance on mount if initialCreatorId is provided (defaults to true)
+ * @returns Combined creator balance state and action functions
+ *
  * @example
  * ```tsx
  * function CreatorDashboard() {

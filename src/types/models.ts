@@ -146,8 +146,8 @@ export interface TransactionWithDetails extends Transaction {
 /**
  * Transaction history response
  */
-export interface TransactionHistory {
-  transactions: Transaction[];
+export interface TransactionHistory<TTransaction = Transaction> {
+  transactions: TTransaction[];
   total: number;
   page: number;
   pageSize: number;
@@ -166,8 +166,8 @@ export interface TransactionStats {
 /**
  * Paginated list of creators response
  */
-export interface CreatorListResponse {
-  creators: Creator[];
+export interface CreatorListResponse<TCreator = Creator> {
+  creators: TCreator[];
   total: number;
   page: number;
   pageSize: number;
@@ -176,8 +176,8 @@ export interface CreatorListResponse {
 /**
  * Paginated list of wallets response
  */
-export interface WalletListResponse {
-  wallets: Wallet[];
+export interface WalletListResponse<TWallet = Wallet> {
+  wallets: TWallet[];
   total: number;
   page: number;
   pageSize: number;

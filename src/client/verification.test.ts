@@ -17,14 +17,14 @@ describe('Verification Methods', () => {
       request: mockRequest,
     } as any;
 
-    client.verifyCreator = VerificationMethods.verifyCreator.bind(client as any);
-    client.requestCreatorVerification = VerificationMethods.requestCreatorVerification.bind(client);
-    client.getCreatorVerificationStatus = VerificationMethods.getCreatorVerificationStatus.bind(client);
-    client.verifyWallet = VerificationMethods.verifyWallet.bind(client);
-    client.getWalletVerificationStatus = VerificationMethods.getWalletVerificationStatus.bind(client);
+    client.verifyCreator = VerificationMethods.verifyCreator.bind(client as any) as any;
+    client.requestCreatorVerification = VerificationMethods.requestCreatorVerification.bind(client) as any;
+    client.getCreatorVerificationStatus = VerificationMethods.getCreatorVerificationStatus.bind(client) as any;
+    client.verifyWallet = VerificationMethods.verifyWallet.bind(client) as any;
+    client.getWalletVerificationStatus = VerificationMethods.getWalletVerificationStatus.bind(client) as any;
     client.requestWalletVerificationChallenge =
-      VerificationMethods.requestWalletVerificationChallenge.bind(client);
-    client.isTransactionVerified = VerificationMethods.isTransactionVerified.bind(client);
+      VerificationMethods.requestWalletVerificationChallenge.bind(client) as any;
+    client.isTransactionVerified = VerificationMethods.isTransactionVerified.bind(client) as any;
 
     mockRequest.mockClear();
   });

@@ -13,7 +13,21 @@ import { filterTransactionsByDateRange, normalizeTransactionStats } from '../uti
 import { DorisioClient } from '../client';
 
 /**
- * Get full transaction history with filters
+ * Get full transaction history with filters.
+ *
+ * @param options - Pagination, status, and date filtering options
+ * @returns Filtered transaction history envelope containing transactions, total count, page, and pageSize
+ * @throws {Error} If fetching transaction history fails or API returns error response
+ *
+ * @example
+ * ```ts
+ * const history = await client.getFullTransactionHistory({
+ *   page: 1,
+ *   pageSize: 10,
+ *   status: 'confirmed',
+ * });
+ * console.log(history.transactions, history.total);
+ * ```
  */
 export async function getFullTransactionHistory(
   this: DorisioClient,
@@ -77,7 +91,17 @@ export async function getFullTransactionHistory(
 }
 
 /**
- * Get transaction statistics
+ * Get aggregate transaction statistics.
+ *
+ * @param userId - Optional user ID filter
+ * @returns Transaction statistics object containing summary metrics
+ * @throws {Error} If fetching statistics fails
+ *
+ * @example
+ * ```ts
+ * const stats = await client.getTransactionStats('user-123');
+ * console.log(stats.totalVolume, stats.totalCount);
+ * ```
  */
 export async function getTransactionStats(
   this: DorisioClient,
@@ -94,7 +118,17 @@ export async function getTransactionStats(
 }
 
 /**
- * Get creator earnings summary
+ * Get creator earnings summary.
+ *
+ * @param creatorId - Unique identifier of the creator
+ * @returns Earnings summary including total earnings, pending balance, confirmed balance, and transaction count
+ * @throws {Error} If fetching creator earnings fails
+ *
+ * @example
+ * ```ts
+ * const earnings = await client.getCreatorEarnings('creator-456');
+ * console.log(earnings.totalEarnings, earnings.pendingBalance);
+ * ```
  */
 export async function getCreatorEarnings(
   this: DorisioClient,
@@ -121,7 +155,20 @@ export async function getCreatorEarnings(
 }
 
 /**
- * Export transaction history (CSV or JSON)
+ * Export transaction history as CSV or JSON.
+ *
+ * @param options - Export options including format ('csv' | 'json') and optional date range
+ * @returns Exported transaction history data string
+ * @throws {Error} If exporting transaction history fails
+ *
+ * @example
+ * ```ts
+ * const csvData = await client.exportTransactionHistory({
+ *   format: 'csv',
+ *   startDate: new Date('2025-01-01'),
+ *   endDate: new Date('2025-12-31'),
+ * });
+ * ```
  */
 export async function exportTransactionHistory(
   this: DorisioClient,
