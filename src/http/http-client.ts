@@ -10,6 +10,9 @@ import { ApiError } from '../types';
 import { InterceptorManager } from './interceptors';
 import { isRequestIdempotent } from './retry-manager';
 import { MockRouter, type SandboxHistoryEntry } from '../sandbox/mock-router';
+import { RequestQueue } from './request-queue';
+import { OfflineQueue } from './offline-queue';
+import { MetricsCollector, type MetricsCallback, type MetricsSummary } from '../lib/metrics';
 
 export type HttpClientMode = 'live' | 'sandbox' | 'production';
 
@@ -24,6 +27,14 @@ export interface RequestOptions {
    * carries an `Idempotency-Key` header is treated as retryable as well.
    */
   isIdempotent?: boolean;
+  /**
+   * Optional AbortSignal to cancel the in-flight request.
+   */
+  signal?: AbortSignal;
+  /**
+   * Optional method or operation name for metrics recording (e.g. 'createTip').
+   */
+  methodName?: string;
 }
 
 export interface HttpClientOptions {
@@ -38,6 +49,26 @@ export interface HttpClientOptions {
   sandboxSeed?: number;
   sandboxLatency?: number;
   sandboxErrorRate?: number;
+  /**
+   * Enable request queue with concurrency control and automatic 429 backoff.
+   */
+  enableRequestQueue?: boolean;
+  /**
+   * Maximum concurrent requests in flight when request queue is enabled (default: 5).
+   */
+  maxConcurrentRequests?: number;
+  /**
+   * Enable offline mutation queue.
+   */
+  enableOfflineQueue?: boolean;
+  /**
+   * Enable performance metrics collection.
+   */
+  enableMetrics?: boolean;
+  /**
+   * Optional callback invoked whenever a request metric is recorded.
+   */
+  metricsCallback?: MetricsCallback;
 }
 
 function normalizeMode(mode?: HttpClientMode): 'live' | 'sandbox' {
@@ -74,6 +105,9 @@ export class HttpClient {
   private tokenRefresher?: () => Promise<void>;
   /** In-flight refresh, shared so concurrent 401s refresh exactly once. */
   private refreshPromise?: Promise<void>;
+  private requestQueue?: RequestQueue;
+  private offlineQueue?: OfflineQueue;
+  private metricsCollector: MetricsCollector;
 
   constructor(baseUrl: string, options?: HttpClientOptions) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
@@ -89,6 +123,21 @@ export class HttpClient {
       seed: options?.sandboxSeed ?? 42,
       latency: options?.sandboxLatency ?? 0,
       errorRate: options?.sandboxErrorRate ?? 0,
+    });
+
+    if (options?.enableRequestQueue) {
+      this.requestQueue = new RequestQueue({
+        maxConcurrentRequests: options.maxConcurrentRequests,
+      });
+    }
+
+    if (options?.enableOfflineQueue) {
+      this.offlineQueue = new OfflineQueue();
+    }
+
+    this.metricsCollector = new MetricsCollector({
+      enabled: options?.enableMetrics ?? false,
+      callback: options?.metricsCallback,
     });
   }
 
@@ -160,45 +209,90 @@ export class HttpClient {
   /**
    * Make HTTP request (or mock when in sandbox mode)
    *
-   * A `401 Unauthorized` is recoverable: when a token refresher is registered
-   * the session is renewed once and the request replayed with the new token. If
-   * the refresh itself fails, the original 401 is surfaced so the caller can log
-   * the user out. The refresh is never attempted for
-   * {@link AUTH_ENDPOINTS} (that would recurse) nor for requests that carry no
-   * credentials (nothing to renew).
+   * Routes through OfflineQueue and RequestQueue when configured,
+   * records performance metrics, and supports 401 token refresh.
    */
   async request<T>(path: string, options: RequestOptions): Promise<T> {
-    const finalOptions = await this.interceptors.executeRequestInterceptors(options);
+    const startTime = Date.now();
+    const methodName = options.methodName || options.method;
+    let success = false;
+    let statusCode: number | undefined;
+    let rateLimited = false;
 
-    if (this.mode === 'sandbox') {
-      const mocked = await this.mockRouter.handle(
-        finalOptions.method,
-        path,
-        finalOptions.body
-      );
-      return (await this.interceptors.executeResponseInterceptors(mocked)) as T;
-    }
+    const executeInternal = async (): Promise<T> => {
+      const finalOptions = await this.interceptors.executeRequestInterceptors(options);
+
+      if (this.mode === 'sandbox') {
+        const mocked = await this.mockRouter.handle(
+          finalOptions.method,
+          path,
+          finalOptions.body
+        );
+        return (await this.interceptors.executeResponseInterceptors(mocked)) as T;
+      }
+
+      try {
+        return await this.sendWithRetries<T>(path, finalOptions);
+      } catch (error) {
+        if (!this.canRecoverFrom(error, path, finalOptions)) {
+          throw error;
+        }
+
+        // Refresh exactly once, sharing the in-flight attempt with any other
+        // request that was rejected at the same time.
+        try {
+          await this.refreshSessionOnce();
+        } catch {
+          // Refresh failed: the session is genuinely gone, surface the original
+          // 401 rather than a secondary refresh error.
+          throw error;
+        }
+
+        // Replay once. This call cannot refresh again, so a second 401 falls
+        // straight through to the caller.
+        return await this.sendWithRetries<T>(path, finalOptions);
+      }
+    };
+
+    const executeWithQueue = (): Promise<T> => {
+      if (this.requestQueue) {
+        return this.requestQueue.enqueue(executeInternal);
+      }
+      return executeInternal();
+    };
+
+    const executeWithOffline = (): Promise<T> => {
+      if (this.offlineQueue) {
+        return this.offlineQueue.handleRequest(options.method, path, executeWithQueue);
+      }
+      return executeWithQueue();
+    };
 
     try {
-      return await this.sendWithRetries<T>(path, finalOptions);
+      const result = await executeWithOffline();
+      success = true;
+      statusCode = 200;
+      return result;
     } catch (error) {
-      if (!this.canRecoverFrom(error, path, finalOptions)) {
-        throw error;
+      if (error instanceof ApiError && error.statusCode !== undefined) {
+        statusCode = error.statusCode;
+        if (error.statusCode === 429) {
+          rateLimited = true;
+        }
       }
-
-      // Refresh exactly once, sharing the in-flight attempt with any other
-      // request that was rejected at the same time.
-      try {
-        await this.refreshSessionOnce();
-      } catch {
-        // Refresh failed: the session is genuinely gone, surface the original
-        // 401 rather than a secondary refresh error.
-        throw error;
+      throw error;
+    } finally {
+      if (this.metricsCollector.isEnabled()) {
+        const latency = Date.now() - startTime;
+        this.metricsCollector.record({
+          method: methodName,
+          path,
+          latency,
+          success,
+          statusCode,
+          rateLimited,
+        });
       }
-
-      // Replay once. This call cannot refresh again, so a second 401 falls
-      // straight through to the caller.
-      return await this.sendWithRetries<T>(path, finalOptions);
     }
   }
 
@@ -256,16 +350,44 @@ export class HttpClient {
 
     for (let attempt = 0; attempt < attempts; attempt++) {
       try {
+        const timeoutSignal = AbortSignal.timeout(options.timeout ?? this.timeout);
+        let signal: AbortSignal = timeoutSignal;
+        if (options.signal) {
+          if (typeof AbortSignal.any === 'function') {
+            signal = AbortSignal.any([options.signal, timeoutSignal]);
+          } else {
+            signal = options.signal;
+          }
+        }
+
         const response = await fetch(url, {
           method: options.method,
           headers,
           body: options.body ? JSON.stringify(options.body) : undefined,
-          signal: AbortSignal.timeout(options.timeout ?? this.timeout),
+          signal,
         });
 
         if (!response.ok) {
           const error = await response.json().catch(() => ({}));
-          throw new ApiError(error.error || 'Request failed', response.status, error.code);
+          const retryAfterHeader = response.headers?.get?.('Retry-After');
+          let retryAfter: number | undefined;
+          if (retryAfterHeader) {
+            const parsedSeconds = Number(retryAfterHeader);
+            if (!Number.isNaN(parsedSeconds)) {
+              retryAfter = parsedSeconds;
+            } else {
+              const parsedDate = Date.parse(retryAfterHeader);
+              if (!Number.isNaN(parsedDate)) {
+                retryAfter = Math.max(0, Math.ceil((parsedDate - Date.now()) / 1000));
+              }
+            }
+          }
+          throw new ApiError(
+            error.error || 'Request failed',
+            response.status,
+            error.code,
+            retryAfter
+          );
         }
 
         const data = (await response.json()) as T;
@@ -299,5 +421,56 @@ export class HttpClient {
     }
 
     throw lastError || new Error('Request failed after retries');
+  }
+
+  /**
+   * Get performance metrics summary
+   */
+  getMetrics(): MetricsSummary {
+    return this.metricsCollector.getMetrics();
+  }
+
+  /**
+   * Get metrics collector instance
+   */
+  getMetricsCollector(): MetricsCollector {
+    return this.metricsCollector;
+  }
+
+  /**
+   * Get request queue instance if enabled
+   */
+  getRequestQueue(): RequestQueue | undefined {
+    return this.requestQueue;
+  }
+
+  /**
+   * Get offline queue instance if enabled
+   */
+  getOfflineQueue(): OfflineQueue | undefined {
+    return this.offlineQueue;
+  }
+
+  /**
+   * Check if client considers itself online
+   */
+  isOnline(): boolean {
+    return this.offlineQueue ? this.offlineQueue.isOnline() : true;
+  }
+
+  /**
+   * Set online status (triggers queue processing when switching from false to true)
+   */
+  setOnline(online: boolean): void {
+    if (this.offlineQueue) {
+      this.offlineQueue.setOnline(online);
+    }
+  }
+
+  /**
+   * Get number of mutations currently queued offline
+   */
+  getOfflineQueueSize(): number {
+    return this.offlineQueue ? this.offlineQueue.getQueueSize() : 0;
   }
 }

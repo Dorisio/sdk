@@ -90,9 +90,12 @@ export class TimeoutError extends DorisioError {
  * Legacy error classes (for backward compatibility)
  */
 export class ApiError extends DorisioError {
-  constructor(message: string, statusCode?: number, code?: string) {
+  public readonly retryAfter?: number;
+
+  constructor(message: string, statusCode?: number, code?: string, retryAfter?: number) {
     super(message, statusCode, code);
     this.name = 'ApiError';
+    this.retryAfter = retryAfter;
   }
 }
 

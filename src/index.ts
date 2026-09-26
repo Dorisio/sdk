@@ -18,6 +18,23 @@ export type {
   ErrorInterceptor,
 } from './http/interceptors';
 export type { RequestOptions } from './http/http-client';
+export { RequestQueue, type RequestQueueOptions } from './http/request-queue';
+export {
+  OfflineQueue,
+  type OfflineQueueOptions,
+  type OfflineEventType,
+  type OfflineEventListener,
+  type QueueProcessedResult,
+} from './http/offline-queue';
+export {
+  MetricsCollector,
+  type MetricsCollectorOptions,
+  type MetricsSummary,
+  type MethodStat,
+  type MetricRecord,
+  type CallbackMetrics,
+  type MetricsCallback,
+} from './lib/metrics';
 
 
 // Re-export types

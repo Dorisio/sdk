@@ -90,6 +90,37 @@ export function useTransactionHistory(
   const [creatorId, setCreatorId] = useState<string | undefined>();
   const [lastOptions, setLastOptions] = useState(initialOptions);
 
+  const isMountedRef = useRef(true);
+  const abortControllersRef = useRef<Set<AbortController>>(new Set());
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    const controllers = abortControllersRef.current;
+    return () => {
+      isMountedRef.current = false;
+      for (const controller of controllers) {
+        controller.abort();
+      }
+      controllers.clear();
+    };
+  }, []);
+
+  const withAbort = <T>(fn: (signal: AbortSignal) => Promise<T>): Promise<T> => {
+    const controller = new AbortController();
+    abortControllersRef.current.add(controller);
+    return fn(controller.signal).finally(() => {
+      abortControllersRef.current.delete(controller);
+    });
+  };
+
+  const safeSetState = useCallback(
+    (fn: React.SetStateAction<UseTransactionHistoryState>) => {
+      if (!isMountedRef.current) return;
+      setState(fn);
+    },
+    []
+  );
+
   // Refs hold latest mutable values so callbacks stay stable and never go stale.
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -105,54 +136,60 @@ export function useTransactionHistory(
         {
           code: 'FETCH_HISTORY_ERROR',
           fallbackMessage: 'Failed to fetch history',
-          onStart: () => setState((s) => ({ ...s, loading: true, error: undefined })),
-          onError: (error) => setState((s) => ({ ...s, error, loading: false })),
+          onStart: () => safeSetState((s) => ({ ...s, loading: true, error: undefined })),
+          onError: (error) => safeSetState((s) => ({ ...s, error, loading: false })),
+          isMounted: () => isMountedRef.current,
         },
-        async () => {
-          const current = stateRef.current;
-          const page = options?.page ?? current.page;
-          const pageSize = options?.pageSize ?? current.pageSize;
-          // Explicit `undefined` clears creator filter; omit to keep last creatorId.
-          const resolvedCreator = creator !== undefined ? creator : creatorIdRef.current;
-          const endpoint = resolvedCreator
-            ? `/api/v1/transactions/creator/${resolvedCreator}`
-            : '/api/v1/transactions/history';
-          const query = `?page=${page}&pageSize=${pageSize}`;
+        () =>
+          withAbort(async (signal) => {
+            const current = stateRef.current;
+            const page = options?.page ?? current.page;
+            const pageSize = options?.pageSize ?? current.pageSize;
+            // Explicit `undefined` clears creator filter; omit to keep last creatorId.
+            const resolvedCreator = creator !== undefined ? creator : creatorIdRef.current;
+            const endpoint = resolvedCreator
+              ? `/api/v1/transactions/creator/${resolvedCreator}`
+              : '/api/v1/transactions/history';
+            const query = `?page=${page}&pageSize=${pageSize}`;
 
-          const response = await client.request('GET', `${endpoint}${query}`);
+            const response = await client.request('GET', `${endpoint}${query}`, undefined, {
+              signal,
+            });
 
-          if (!response.success || !response.data) {
-            throw new Error(response.error?.message || 'Failed to fetch transaction history');
-          }
+            if (!response.success || !response.data) {
+              throw new Error(response.error?.message || 'Failed to fetch transaction history');
+            }
 
-          const d = response.data as {
-            tips?: unknown[];
-            transactions?: unknown[];
-            total?: number;
-            page?: number;
-            pageSize?: number;
-          };
-          const transactions = (d.tips ?? d.transactions ?? []) as Transaction[];
-          setState((s) => ({
-            ...s,
-            transactions,
-            total: d.total ?? 0,
-            page: d.page ?? page,
-            pageSize: d.pageSize ?? pageSize,
-            lastUpdated: Date.now(),
-            loading: false,
-          }));
+            const d = response.data as {
+              tips?: unknown[];
+              transactions?: unknown[];
+              total?: number;
+              page?: number;
+              pageSize?: number;
+            };
+            const transactions = (d.tips ?? d.transactions ?? []) as Transaction[];
+            safeSetState((s) => ({
+              ...s,
+              transactions,
+              total: d.total ?? 0,
+              page: d.page ?? page,
+              pageSize: d.pageSize ?? pageSize,
+              lastUpdated: Date.now(),
+              loading: false,
+            }));
 
-          const nextOptions = { page, pageSize };
-          setLastOptions(nextOptions);
-          lastOptionsRef.current = nextOptions;
-          setCreatorId(resolvedCreator);
-          creatorIdRef.current = resolvedCreator;
+            const nextOptions = { page, pageSize };
+            if (isMountedRef.current) {
+              setLastOptions(nextOptions);
+              setCreatorId(resolvedCreator);
+            }
+            lastOptionsRef.current = nextOptions;
+            creatorIdRef.current = resolvedCreator;
 
-          return transactions;
-        }
+            return transactions;
+          })
       ),
-    [client, setError, setIsLoading]
+    [client, setError, setIsLoading, safeSetState]
   );
 
   const goToPage = useCallback(
@@ -200,13 +237,15 @@ export function useTransactionHistory(
       pageSize: 10,
       loading: false,
     };
-    setState(initial);
+    safeSetState(initial);
     stateRef.current = initial;
-    setCreatorId(undefined);
+    if (isMountedRef.current) {
+      setCreatorId(undefined);
+      setLastOptions(undefined);
+    }
     creatorIdRef.current = undefined;
-    setLastOptions(undefined);
     lastOptionsRef.current = undefined;
-  }, []);
+  }, [safeSetState]);
 
   // Auto-fetch on mount
   useEffect(() => {
