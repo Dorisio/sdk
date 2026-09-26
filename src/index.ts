@@ -53,6 +53,14 @@ export type {
 
 // Re-export utils
 export { ApiErrorHandler, RequestValidator } from './utils';
+export {
+  isBrowser,
+  isNode,
+  isReactNative,
+  isLocalStorageAvailable,
+  getEnvironmentStorage,
+  getGlobalFetch,
+} from './utils/environment';
 
 // Re-export webhook utilities
 export {

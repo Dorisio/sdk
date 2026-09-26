@@ -316,6 +316,135 @@ transactions.forEach((tx) => {
 });
 ```
 
+## Hosting Environments Setup Guide
+
+Dorisio SDK is designed to work seamlessly across Node.js, modern web browsers, Next.js (SSR/SSG), and React Native.
+
+### Environment Runtime Detection
+
+The SDK exports built-in environment detection and storage guard helpers to prevent runtime crashes when globals like `window` or `localStorage` are inaccessible:
+
+```typescript
+import {
+  isBrowser,
+  isNode,
+  isReactNative,
+  isLocalStorageAvailable,
+  getEnvironmentStorage,
+} from 'dorisio-sdk';
+
+if (isBrowser()) {
+  console.log('Running in browser context');
+}
+```
+
+---
+
+### Node.js Setup
+
+- **Supported Node versions**: Node.js **v18+** is recommended for built-in native `fetch` support.
+- **Older Node (< v18)**: If using Node v16 or earlier, polyfill `fetch` before initializing `DorisioClient`:
+
+```typescript
+import fetch from 'node-fetch';
+if (!globalThis.fetch) {
+  (globalThis as any).fetch = fetch;
+}
+
+import { DorisioClient } from 'dorisio-sdk';
+
+const client = new DorisioClient({
+  baseUrl: process.env.DORISIO_API_URL || 'https://api.dorisio.com',
+  token: process.env.DORISIO_SECRET_KEY,
+});
+```
+
+---
+
+### Browser / Vite / Create React App
+
+Initialize `DorisioClient` directly within your application code:
+
+```typescript
+import { DorisioClient } from 'dorisio-sdk';
+
+const client = new DorisioClient({
+  baseUrl: import.meta.env.VITE_DORISIO_API_URL || 'https://api.dorisio.com',
+  token: import.meta.env.VITE_DORISIO_PUBLIC_TOKEN,
+});
+```
+
+> ⚠️ **Security Note**: Never expose secret admin API keys in client-side browser bundles (`VITE_` or `REACT_APP_` prefixes). Only use public publishable tokens or proxy sensitive operations through your backend server.
+
+---
+
+### Next.js (App Router & Pages Router)
+
+In Next.js environments, code runs on both the server (SSR/SSG) and the client browser.
+
+- **Environment Variables**: Prefix client-accessible environment variables with `NEXT_PUBLIC_`:
+
+```bash
+NEXT_PUBLIC_DORISIO_API_URL=https://api.dorisio.com
+DORISIO_SECRET_KEY=secret_key_server_only
+```
+
+- **Client Components (`'use client'`)**: Mark components utilizing browser extensions or hooks with `'use client'`:
+
+```tsx
+'use client';
+
+import { DorisioProvider, useWallet } from 'dorisio-sdk/react';
+
+export default function WalletStatus() {
+  const { wallets, loading } = useWallet();
+  if (loading) return <p>Loading wallets...</p>;
+  return <p>Wallets connected: {wallets.length}</p>;
+}
+```
+
+- **Suppressing SSR for Browser-Only Features**: For browser-only extensions like Freighter or window-dependent wallet signers, wrap execution in `useEffect` or dynamic imports with `ssr: false`:
+
+```tsx
+import dynamic from 'next/dynamic';
+
+const DynamicWalletLink = dynamic(() => import('../components/WalletLink'), {
+  ssr: false,
+});
+```
+
+---
+
+### React Native Setup
+
+React Native environments lack standard browser `window` globals and DOM `localStorage`.
+
+- **Polyfills**: Ensure global `fetch` is available (included in modern React Native / Expo runtimes).
+- **Custom Storage Adapter**: `DorisioSDK` provides `getEnvironmentStorage()` which automatically falls back to an in-memory storage manager if `localStorage` is undefined or throws permission errors.
+
+```typescript
+import { DorisioClient, getEnvironmentStorage } from 'dorisio-sdk';
+
+const client = new DorisioClient({
+  baseUrl: 'https://api.dorisio.com',
+  token: 'user-auth-token',
+});
+```
+
+---
+
+### Token Storage Best Practices
+
+| Hosting Environment | Recommended Storage Mechanism | Security Level |
+| :--- | :--- | :--- |
+| **Node.js Server** | Process Environment Variables / Secrets Manager | 🔒 **High** |
+| **Web Browser (SPA)** | In-Memory Token Storage or HttpOnly / SameSite Cookies | 🔒 **High** |
+| **Next.js SSR** | Server-side HttpOnly Session Cookies | 🔒 **High** |
+| **React Native / Expo** | `expo-secure-store` or `react-native-encrypted-storage` | 🔒 **High** |
+| **Browser `localStorage`** | Public non-sensitive options only (vulnerable to XSS) | ⚠️ **Use with Caution** |
+
+---
+
 ## Configuration
 
 ```typescript
