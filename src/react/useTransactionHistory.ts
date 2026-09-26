@@ -90,6 +90,37 @@ export function useTransactionHistory(
   const [creatorId, setCreatorId] = useState<string | undefined>();
   const [lastOptions, setLastOptions] = useState(initialOptions);
 
+  const isMountedRef = useRef(true);
+  const abortControllersRef = useRef<Set<AbortController>>(new Set());
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    const controllers = abortControllersRef.current;
+    return () => {
+      isMountedRef.current = false;
+      for (const controller of controllers) {
+        controller.abort();
+      }
+      controllers.clear();
+    };
+  }, []);
+
+  const withAbort = <T>(fn: (signal: AbortSignal) => Promise<T>): Promise<T> => {
+    const controller = new AbortController();
+    abortControllersRef.current.add(controller);
+    return fn(controller.signal).finally(() => {
+      abortControllersRef.current.delete(controller);
+    });
+  };
+
+  const safeSetState = useCallback(
+    (fn: React.SetStateAction<UseTransactionHistoryState>) => {
+      if (!isMountedRef.current) return;
+      setState(fn);
+    },
+    []
+  );
+
   // Refs hold latest mutable values so callbacks stay stable and never go stale.
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -119,8 +150,9 @@ export function useTransactionHistory(
         {
           code: 'FETCH_HISTORY_ERROR',
           fallbackMessage: 'Failed to fetch history',
-          onStart: () => setState((s) => ({ ...s, loading: true, error: undefined })),
-          onError: (error) => setState((s) => ({ ...s, error, loading: false })),
+          onStart: () => safeSetState((s) => ({ ...s, loading: true, error: undefined })),
+          onError: (error) => safeSetState((s) => ({ ...s, error, loading: false })),
+          isMounted: () => isMountedRef.current,
         },
         async () => {
           // Claim this fetch's generation up front and cancel whatever is
@@ -186,7 +218,7 @@ export function useTransactionHistory(
           return transactions;
         }
       ),
-    [client, setError, setIsLoading]
+    [client, setError, setIsLoading, safeSetState]
   );
 
   const goToPage = useCallback(
@@ -249,13 +281,15 @@ export function useTransactionHistory(
       pageSize: 10,
       loading: false,
     };
-    setState(initial);
+    safeSetState(initial);
     stateRef.current = initial;
-    setCreatorId(undefined);
+    if (isMountedRef.current) {
+      setCreatorId(undefined);
+      setLastOptions(undefined);
+    }
     creatorIdRef.current = undefined;
-    setLastOptions(undefined);
     lastOptionsRef.current = undefined;
-  }, []);
+  }, [safeSetState]);
 
   // Auto-fetch on mount
   useEffect(() => {
