@@ -28,13 +28,11 @@ export interface RequestOptions {
    */
   isIdempotent?: boolean;
   /**
-   * Optional AbortSignal to cancel the in-flight request.
+   * Caller-provided abort signal (e.g. a hook superseding a stale request).
+   * Combined with the timeout signal — aborting this cancels the fetch and
+   * skips retries. Aborted requests reject instead of retrying.
    */
   signal?: AbortSignal;
-  /**
-   * Optional method or operation name for metrics recording (e.g. 'createTip').
-   */
-  methodName?: string;
 }
 
 export interface HttpClientOptions {
@@ -364,7 +362,9 @@ export class HttpClient {
           method: options.method,
           headers,
           body: options.body ? JSON.stringify(options.body) : undefined,
-          signal,
+          signal: options.signal
+            ? AbortSignal.any([options.signal, AbortSignal.timeout(options.timeout ?? this.timeout)])
+            : AbortSignal.timeout(options.timeout ?? this.timeout),
         });
 
         if (!response.ok) {
@@ -395,6 +395,12 @@ export class HttpClient {
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         await this.interceptors.executeErrorInterceptors(lastError);
+
+        // Don't retry requests the caller cancelled (superseded hook
+        // requests) — retrying an aborted fetch just burns attempts.
+        if (options.signal?.aborted) {
+          throw lastError;
+        }
 
         if (
           error instanceof ApiError &&

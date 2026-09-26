@@ -129,6 +129,20 @@ export function useTransactionHistory(
   const lastOptionsRef = useRef(lastOptions);
   lastOptionsRef.current = lastOptions;
 
+  // Issue #26: guards against the setPageSize/fetchHistory race. Every fetch
+  // claims a generation number; only the latest generation may touch state,
+  // and starting a new fetch aborts the previous in-flight request.
+  const requestIdRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Trailing debounce for setPageSize so rapid successive calls collapse
+  // into a single fetch for the latest size; all callers share the outcome.
+  const pageSizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pageSizePendingRef = useRef<Array<{
+    resolve: () => void;
+    reject: (err: unknown) => void;
+  }>>([]);
+
   const fetchHistory = useCallback(
     (options?: TransactionHistoryOptions, creator?: string): Promise<Transaction[]> =>
       runSafely(
@@ -140,54 +154,69 @@ export function useTransactionHistory(
           onError: (error) => safeSetState((s) => ({ ...s, error, loading: false })),
           isMounted: () => isMountedRef.current,
         },
-        () =>
-          withAbort(async (signal) => {
-            const current = stateRef.current;
-            const page = options?.page ?? current.page;
-            const pageSize = options?.pageSize ?? current.pageSize;
-            // Explicit `undefined` clears creator filter; omit to keep last creatorId.
-            const resolvedCreator = creator !== undefined ? creator : creatorIdRef.current;
-            const endpoint = resolvedCreator
-              ? `/api/v1/transactions/creator/${resolvedCreator}`
-              : '/api/v1/transactions/history';
-            const query = `?page=${page}&pageSize=${pageSize}`;
+        async () => {
+          // Claim this fetch's generation up front and cancel whatever is
+          // still in flight — its response (or abort error) is stale by
+          // definition and must never touch state.
+          const requestId = ++requestIdRef.current;
+          abortRef.current?.abort();
+          const controller = new AbortController();
+          abortRef.current = controller;
+          const isStale = () => requestId !== requestIdRef.current;
 
-            const response = await client.request('GET', `${endpoint}${query}`, undefined, {
-              signal,
+          const current = stateRef.current;
+          const page = options?.page ?? current.page;
+          const pageSize = options?.pageSize ?? current.pageSize;
+          // Explicit `undefined` clears creator filter; omit to keep last creatorId.
+          const resolvedCreator = creator !== undefined ? creator : creatorIdRef.current;
+          const endpoint = resolvedCreator
+            ? `/api/v1/transactions/creator/${resolvedCreator}`
+            : '/api/v1/transactions/history';
+          const query = `?page=${page}&pageSize=${pageSize}`;
+
+          let response;
+          try {
+            response = await client.request('GET', `${endpoint}${query}`, undefined, {
+              signal: controller.signal,
             });
+          } catch (err) {
+            // A superseded request's failure (including its own abort) is
+            // not an error — silently keep current state.
+            if (isStale()) return stateRef.current.transactions;
+            throw err;
+          }
+          if (isStale()) return stateRef.current.transactions;
 
-            if (!response.success || !response.data) {
-              throw new Error(response.error?.message || 'Failed to fetch transaction history');
-            }
+          if (!response.success || !response.data) {
+            throw new Error(response.error?.message || 'Failed to fetch transaction history');
+          }
 
-            const d = response.data as {
-              tips?: unknown[];
-              transactions?: unknown[];
-              total?: number;
-              page?: number;
-              pageSize?: number;
-            };
-            const transactions = (d.tips ?? d.transactions ?? []) as Transaction[];
-            safeSetState((s) => ({
-              ...s,
-              transactions,
-              total: d.total ?? 0,
-              page: d.page ?? page,
-              pageSize: d.pageSize ?? pageSize,
-              lastUpdated: Date.now(),
-              loading: false,
-            }));
+          const d = response.data as {
+            tips?: unknown[];
+            transactions?: unknown[];
+            total?: number;
+            page?: number;
+            pageSize?: number;
+          };
+          const transactions = (d.tips ?? d.transactions ?? []) as Transaction[];
+          setState((s) => ({
+            ...s,
+            transactions,
+            total: d.total ?? 0,
+            page: d.page ?? page,
+            pageSize: d.pageSize ?? pageSize,
+            lastUpdated: Date.now(),
+            loading: false,
+          }));
 
-            const nextOptions = { page, pageSize };
-            if (isMountedRef.current) {
-              setLastOptions(nextOptions);
-              setCreatorId(resolvedCreator);
-            }
-            lastOptionsRef.current = nextOptions;
-            creatorIdRef.current = resolvedCreator;
+          const nextOptions = { page, pageSize };
+          setLastOptions(nextOptions);
+          lastOptionsRef.current = nextOptions;
+          setCreatorId(resolvedCreator);
+          creatorIdRef.current = resolvedCreator;
 
-            return transactions;
-          })
+          return transactions;
+        }
       ),
     [client, setError, setIsLoading, safeSetState]
   );
@@ -215,12 +244,27 @@ export function useTransactionHistory(
     }
   }, [goToPage]);
 
+  const SET_PAGE_SIZE_DEBOUNCE_MS = 150;
+
   const setPageSize = useCallback(
     async (size: number): Promise<void> => {
-      if (size > 0 && size <= 100) {
-        // Page-size changes always reset to page 1 and keep the current creator.
-        await fetchHistory({ page: 1, pageSize: size }, creatorIdRef.current);
-      }
+      if (!(size > 0 && size <= 100)) return;
+      // Page-size changes always reset to page 1 and keep the current creator.
+      // Rapid calls collapse: only the latest size fetches, every caller
+      // shares its outcome.
+      return new Promise<void>((resolve, reject) => {
+        pageSizePendingRef.current.push({ resolve, reject });
+        if (pageSizeTimerRef.current) clearTimeout(pageSizeTimerRef.current);
+        pageSizeTimerRef.current = setTimeout(() => {
+          pageSizeTimerRef.current = null;
+          const pending = pageSizePendingRef.current;
+          pageSizePendingRef.current = [];
+          fetchHistory({ page: 1, pageSize: size }, creatorIdRef.current).then(
+            () => pending.forEach((p) => p.resolve()),
+            (err: unknown) => pending.forEach((p) => p.reject(err))
+          );
+        }, SET_PAGE_SIZE_DEBOUNCE_MS);
+      });
     },
     [fetchHistory]
   );
@@ -256,6 +300,18 @@ export function useTransactionHistory(
     // Intentionally mount-only; callers can refetch when inputs change.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only autoFetch
   }, []);
+
+  // Tear down in-flight work on unmount: no debounced fetch or late
+  // response may touch state after this hook is gone.
+  useEffect(
+    () => () => {
+      if (pageSizeTimerRef.current) clearTimeout(pageSizeTimerRef.current);
+      pageSizePendingRef.current = [];
+      abortRef.current?.abort();
+      requestIdRef.current += 1;
+    },
+    []
+  );
 
   return {
     ...state,
