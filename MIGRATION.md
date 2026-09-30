@@ -237,13 +237,22 @@ const isValid = verifyWebhook(req.body, req.headers['signature'], secret);
 import { verifyWebhookSignature } from 'dorisio-sdk/webhook';
 
 const signature = req.headers['x-dorisio-signature'];
-const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+const timestamp = req.headers['x-dorisio-timestamp'];
+// Configure this route to retain the original raw request body (Buffer or string).
+const rawBody = req.body;
 
-const isValid = verifyWebhookSignature(rawBody, signature, process.env.DORISIO_WEBHOOK_SECRET!);
+const isValid = typeof timestamp === 'string' && verifyWebhookSignature(
+  rawBody,
+  signature,
+  process.env.DORISIO_WEBHOOK_SECRET!,
+  { timestamp }
+);
 if (!isValid) {
   res.status(401).send('Invalid signature');
 }
 ```
+Verify before parsing the body. Re-serializing a parsed JSON object can change its
+bytes and must not be used to reconstruct the signed payload.
 
 ---
 

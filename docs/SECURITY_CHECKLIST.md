@@ -48,6 +48,15 @@ This checklist provides a comprehensive guide for implementing secure integratio
 - [ ] **Error Handling**: Do error messages avoid leaking sensitive information?
 - [ ] **API Versioning**: Is API versioning implemented for backward compatibility?
 
+### Webhook Security
+
+- [ ] **Signature Verification**: Is `x-dorisio-signature` verified with the webhook secret before processing?
+- [ ] **Raw Body**: Is the original request body preserved for verification rather than re-serialized JSON?
+- [ ] **Replay Protection**: Is `x-dorisio-timestamp` verified with a bounded age and clock-skew window?
+- [ ] **Duplicate Delivery**: Are processed event IDs stored to prevent duplicate work within the timestamp window?
+- [ ] **Secret Handling**: Is the webhook secret kept in a secret manager or environment variable and excluded from logs?
+- [ ] **Transport Security**: Is the webhook endpoint served over HTTPS?
+
 ### Payment Security
 
 - [ ] **Amount Validation**: Are payment amounts validated before processing?
