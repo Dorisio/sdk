@@ -131,6 +131,10 @@ describe('webhook verification', () => {
       expect(verifyWebhookSignature(body, true as unknown as string, secret, { timestamp: now, now })).toBe(false);
     });
 
+    it('rejects duplicate signature header values', () => {
+      expect(verifyWebhookSignature(body, [sign(body, now), sign(body, now)], secret, { timestamp: now, now })).toBe(false);
+    });
+
     it('rejects empty or missing secret', () => {
       const validSig = sign(body, now);
       expect(verifyWebhookSignature(body, validSig, '', { timestamp: now, now })).toBe(false);

@@ -280,25 +280,32 @@ try {
 
 #### Webhook Verification
 
-Verify incoming webhooks are authentic:
+Verify the signature against the exact raw request body before parsing or processing
+the event. Configure a raw-body parser on this route before any JSON parser; the
+timestamp header provides a five-minute replay window by default.
 
 ```typescript
 import { verifyWebhookSignature, parseWebhookPayload } from 'dorisio-sdk';
 
-// In your webhook handler
-const isValid = verifyWebhookSignature(
-  JSON.stringify(req.body),
+// req.body must be the unmodified Buffer or string from the incoming request.
+const timestamp = req.headers['x-dorisio-timestamp'];
+const isValid = typeof timestamp === 'string' && verifyWebhookSignature(
+  req.body,
   req.headers['x-dorisio-signature'],
-  process.env.DORISIO_WEBHOOK_SECRET!
+  process.env.DORISIO_WEBHOOK_SECRET!,
+  { timestamp }
 );
 
 if (!isValid) {
   return res.status(401).json({ error: 'Invalid signature' });
 }
 
-const event = parseWebhookPayload(req.body);
+const event = parseWebhookPayload(JSON.parse(req.body.toString()));
 console.log(`Event: ${event.event}`, event.data);
 ```
+
+Keep the webhook secret in a secret manager or environment variable, use HTTPS, and
+deduplicate processed event IDs to prevent repeat handling within the allowed window.
 
 ### Custom Request Headers
 

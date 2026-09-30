@@ -48,7 +48,7 @@ export interface WebhookVerificationOptions {
  */
 export function verifyWebhookSignature(
   payload: string | Buffer | Record<string, any>,
-  signature: string,
+  signature: string | string[] | undefined,
   secret: string,
   options?: WebhookVerificationOptions
 ): boolean {
