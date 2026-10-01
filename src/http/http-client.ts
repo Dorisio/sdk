@@ -56,6 +56,11 @@ export interface RequestOptions {
    */
   requestId?: string;
   /**
+   * Distributed tracing id for this logical request. It is sent as
+   * `X-Correlation-ID` and is reused by retries and authentication replays.
+   */
+  correlationId?: string;
+  /**
    * Optional name of the calling SDK method for logging / diagnostics.
    */
   methodName?: string;
@@ -96,6 +101,10 @@ export interface HttpClientOptions {
   errorHandler?: ErrorHandler;
   /** Custom request ID generator function */
   requestIdGenerator?: () => string;
+  /** Enable correlation IDs, or provide a fixed ID to propagate to every request. */
+  correlationId?: boolean | string;
+  /** Called with the effective correlation ID once a response is received. */
+  onCorrelationId?: (correlationId: string) => void;
   /**
    * Enable request queue with concurrency control and automatic 429 backoff.
    */
@@ -178,6 +187,25 @@ function withRequestIdHeader(
   return next;
 }
 
+/** Return a header value without requiring callers to match its casing. */
+function getHeader(headers: Record<string, string> | undefined, name: string): string | undefined {
+  const target = name.toLowerCase();
+  const entry = Object.entries(headers ?? {}).find(([key]) => key.toLowerCase() === target);
+  return entry?.[1];
+}
+
+/** Attach the tracing id unless the caller explicitly supplied one. */
+function withCorrelationIdHeader(
+  headers: Record<string, string> | undefined,
+  correlationId: string | undefined
+): Record<string, string> {
+  const next: Record<string, string> = { ...headers };
+  if (correlationId && !hasHeader(next, 'x-correlation-id')) {
+    next['X-Correlation-ID'] = correlationId;
+  }
+  return next;
+}
+
 function stableSerialize(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableSerialize).join(',')}]`;
   if (value && typeof value === 'object') {
@@ -246,6 +274,10 @@ export class HttpClient {
   private cacheManager: CacheManager;
   private errorHandler?: ErrorHandler;
   private requestIdGenerator?: () => string;
+  private correlationIdEnabled: boolean;
+  private configuredCorrelationId?: string;
+  private currentCorrelationId?: string;
+  private onCorrelationId?: (correlationId: string) => void;
   private requestQueue?: RequestQueue;
   private offlineQueue?: OfflineQueue;
   private connectionPool: ConnectionPool;
@@ -281,6 +313,11 @@ export class HttpClient {
     this.cacheManager = new CacheManager(options?.cache);
     this.errorHandler = options?.errorHandler;
     this.requestIdGenerator = options?.requestIdGenerator;
+    this.correlationIdEnabled = options?.correlationId !== false;
+    this.configuredCorrelationId =
+      typeof options?.correlationId === 'string' ? options.correlationId : undefined;
+    this.currentCorrelationId = this.configuredCorrelationId;
+    this.onCorrelationId = options?.onCorrelationId;
 
     if (options?.enableRequestQueue) {
       this.requestQueue = new RequestQueue({
@@ -359,6 +396,31 @@ export class HttpClient {
    */
   setRequestIdGenerator(generator: () => string): void {
     this.requestIdGenerator = generator;
+  }
+
+  /** The latest client- or server-provided correlation ID. */
+  getCorrelationId(): string | undefined {
+    return this.currentCorrelationId;
+  }
+
+  private resolveCorrelationId(options: RequestOptions): string | undefined {
+    const headerCorrelationId = getHeader(options.headers, 'x-correlation-id');
+    const correlationId =
+      options.correlationId ??
+      headerCorrelationId ??
+      this.configuredCorrelationId ??
+      (this.correlationIdEnabled ? generateRequestId('correlation') : undefined);
+    this.currentCorrelationId = correlationId;
+    return correlationId;
+  }
+
+  private recordResponseCorrelationId(response: Response, requestCorrelationId?: string): void {
+    const serverCorrelationId = response.headers?.get?.('X-Correlation-ID') ?? undefined;
+    const correlationId = serverCorrelationId || requestCorrelationId;
+    if (correlationId) {
+      this.currentCorrelationId = correlationId;
+      this.onCorrelationId?.(correlationId);
+    }
   }
 
   /**
@@ -446,6 +508,7 @@ export class HttpClient {
     const requestId =
       options.requestId ??
       (this.requestIdGenerator ? this.requestIdGenerator() : generateRequestId('http'));
+    const correlationId = this.resolveCorrelationId(options);
 
     // One logical request may only run one retry sequence at a time. Two
     // concurrent callers reusing an id would otherwise double-submit the same
@@ -484,7 +547,11 @@ export class HttpClient {
         const seeded: RequestOptions = {
           ...options,
           requestId,
-          headers: withRequestIdHeader(options.headers, requestId),
+          correlationId,
+          headers: withCorrelationIdHeader(
+            withRequestIdHeader(options.headers, requestId),
+            correlationId
+          ),
         };
         const finalOptions = await this.interceptors.executeRequestInterceptors(seeded);
 
@@ -497,7 +564,10 @@ export class HttpClient {
         const cacheBaseParams = finalOptions.cacheParams ?? [path, finalOptions.body ?? null];
         const cacheHeaders = Object.fromEntries(
           Object.entries({ ...this.defaultHeaders, ...finalOptions.headers })
-            .filter(([header]) => header.toLowerCase() !== 'x-request-id')
+            .filter(([header]) => {
+              const normalizedHeader = header.toLowerCase();
+              return normalizedHeader !== 'x-request-id' && normalizedHeader !== 'x-correlation-id';
+            })
             .sort(([left], [right]) => left.localeCompare(right))
         );
         const cacheParams = [...cacheBaseParams, cacheHeaders];
@@ -728,6 +798,7 @@ export class HttpClient {
           requestId: options.requestId,
         });
         const response = await fetch(url, fetchOptions);
+        this.recordResponseCorrelationId(response, options.correlationId);
         options.onResponse?.(response);
         this.onResponse?.(response);
         this.log('[DORISIO] response', {
