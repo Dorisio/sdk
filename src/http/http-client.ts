@@ -30,6 +30,8 @@ import type { ValidationSchemas } from '../types/validation';
 import { CacheManager } from '../cache/cache-manager';
 import type { CacheOptions } from '../types/cache';
 import { prepareRequestBody, type RequestCompressionConfig } from './compress';
+import { CacheManager } from '../cache/cache-manager';
+import type { CacheOptions } from '../types/cache';
 
 export type HttpClientMode = 'live' | 'sandbox' | 'production';
 
