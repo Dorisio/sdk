@@ -7,6 +7,54 @@ import { HttpClient } from './http-client';
 import { ApiError, DorisioError } from '../types';
 import type { ErrorHandlerContext } from '../types/errors';
 
+describe('HttpClient correlation IDs', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it('generates and sends a correlation ID for every request', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: vi.fn().mockReturnValue(null) },
+      json: async () => ({ ok: true }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const onCorrelationId = vi.fn();
+    const client = new HttpClient('https://api.example.com', { onCorrelationId });
+
+    await client.request('/api/v1/health', { method: 'GET' });
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<string, string>;
+    expect(headers['X-Correlation-ID']).toMatch(/^correlation-/);
+    expect(client.getCorrelationId()).toBe(headers['X-Correlation-ID']);
+    expect(onCorrelationId).toHaveBeenCalledWith(headers['X-Correlation-ID']);
+  });
+
+  it('preserves an explicit ID and adopts the server correlation ID', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: vi.fn().mockReturnValue('server-trace-42') },
+      json: async () => ({ ok: true }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const client = new HttpClient('https://api.example.com');
+
+    await client.request('/api/v1/health', {
+      method: 'GET',
+      correlationId: 'client-trace-42',
+    });
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<string, string>;
+    expect(headers['X-Correlation-ID']).toBe('client-trace-42');
+    expect(client.getCorrelationId()).toBe('server-trace-42');
+  });
+});
+
 describe('HttpClient idempotent retries', () => {
   const originalFetch = globalThis.fetch;
 

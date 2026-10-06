@@ -107,6 +107,10 @@ export interface ClientConfig {
   errorHandler?: ErrorHandler;
   /** Custom request ID generator for request fingerprinting */
   requestIdGenerator?: () => string;
+  /** Enable correlation IDs, or provide a fixed ID to propagate to every request. */
+  correlationId?: boolean | string;
+  /** Called with the effective client or server correlation ID for each response. */
+  onCorrelationId?: (correlationId: string) => void;
   /** Enable request queue with concurrency control and automatic 429 backoff */
   enableRequestQueue?: boolean;
   /** Maximum concurrent requests in flight when request queue is enabled (default: 5) */
@@ -173,6 +177,7 @@ export class DorisioClient {
   private telemetryClient?: TelemetryClient;
   private pluginSystem: PluginSystem;
   private offlineManager?: OfflineManager;
+  private currentCorrelationId?: string;
 
   constructor(config: ClientConfig) {
     const mode = normalizeClientMode(config.mode);
@@ -193,6 +198,8 @@ export class DorisioClient {
       cache: config.cache,
       errorHandler: config.errorHandler,
       requestIdGenerator: config.requestIdGenerator,
+      correlationId: config.correlationId,
+      onCorrelationId: config.onCorrelationId,
       enableRequestQueue: config.enableRequestQueue,
       maxConcurrentRequests: config.maxConcurrentRequests,
       enableOfflineQueue: config.enableOfflineQueue,
@@ -248,6 +255,11 @@ export class DorisioClient {
       cache: config.cache,
       errorHandler: this.errorHandler,
       requestIdGenerator: config.requestIdGenerator,
+      correlationId: config.correlationId,
+      onCorrelationId: (correlationId) => {
+        this.currentCorrelationId = correlationId;
+        config.onCorrelationId?.(correlationId);
+      },
       enableRequestQueue: config.enableRequestQueue,
       maxConcurrentRequests: config.maxConcurrentRequests,
       enableOfflineQueue: config.enableOfflineQueue,
@@ -330,6 +342,11 @@ export class DorisioClient {
       mode: this.mode,
       sandboxSeed: config.sandboxSeed,
     });
+  }
+
+  /** The correlation ID from the most recent completed request. */
+  getCorrelationId(): string | undefined {
+    return this.currentCorrelationId ?? this.httpClient.getCorrelationId();
   }
 
   /**
