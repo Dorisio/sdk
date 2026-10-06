@@ -1,1 +1,647 @@
-LyoqCiAqIEh0dHBDbGllbnQgcmV0cnkgLyBpZGVtcG90ZW5jeSAvIHNlc3Npb24tcmVmcmVzaCB0ZXN0cwogKi8KCmltcG9ydCB7IGRlc2NyaWJlLCBpdCwgZXhwZWN0LCBiZWZvcmVFYWNoLCBhZnRlckVhY2gsIHZpIH0gZnJvbSAndml0ZXN0JzsKaW1wb3J0IHsgSHR0cENsaWVudCB9IGZyb20gJy4vaHR0cC1jbGllbnQnOwppbXBvcnQgeyBBcGlFcnJvciwgRG9yaXNpb0Vycm9yIH0gZnJvbSAnLi4vdHlwZXMnOwppbXBvcnQgdHlwZSB7IEVycm9ySGFuZGxlckNvbnRleHQgfSBmcm9tICcuLi90eXBlcy9lcnJvcnMnOwoKZGVzY3JpYmUoJ0h0dHBDbGllbnQgY29ycmVsYXRpb24gSURzJywgKCkgPT4gewogIGNvbnN0IG9yaWdpbmFsRmV0Y2ggPSBnbG9iYWxUaGlzLmZldGNoOwoKICBhZnRlckVhY2goKCkgPT4gewogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IG9yaWdpbmFsRmV0Y2g7CiAgICB2aS5yZXN0b3JlQWxsTW9ja3MoKTsKICB9KTsKCiAgaXQoJ2dlbmVyYXRlcyBhbmQgc2VuZHMgYSBjb3JyZWxhdGlvbiBJRCBmb3IgZXZlcnkgcmVxdWVzdCcsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IGZldGNoTW9jayA9IHZpLmZuKCkubW9ja1Jlc29sdmVkKHsKICAgICAgb2s6IHRydWUsCiAgICAgIHN0YXR1czogMjAwLAogICAgICBoZWFkZXJzOiB7IGdldDogdmkuZm4oKS5tb2NrUmV0dXJuVmFsdWUobnVsbCkgfSwKICAgICAganNvbjogYXN5bmMgKCkgPT4gKHsgb2s6IHRydWUgfSksCiAgICB9KTsKICAgIGdsb2JhbFRoaXMuZmV0Y2ggPSBmZXRjaE1vY2sgYXMgdW5rbm93biBhcyB0eXBlb2YgZmV0Y2g7CiAgICBjb25zdCBvbkNvcnJlbGF0aW9uSWQgPSB2aS5mbigpOwogICAgY29uc3QgY2xpZW50ID0gbmV3IEh0dHBDbGllbnQoJ2h0dHBzOi8vYXBpLmV4YW1wbGUuY29tJywgeyBvbkNvcnJlbGF0aW9uSWQgfSk7CgogICAgYXdhaXQgY2xpZW50LnJlcXVlc3QoJy9hcGkvdjEvaGVhbHRoJywgeyBtZXRob2Q6ICdHRVQnIH0pOwoKICAgIGNvbnN0IGhlYWRlcnMgPSBmZXRjaE1vY2subW9jay5jYWxsc1swXT8uWzFdPy5oZWFkZXJzIGFzIFJlY29yZDxzdHJpbmcsIHN0cmluZz47CiAgICBleHBlY3QoaGVhZGVyc1snWC1Db3JyZWxhdGlvbi1JRCddKS50b01hdGNoKC9eY29ycmVsYXRpb24tLyk7CiAgICBleHBlY3QoY2xpZW50LmdldENvcnJlbGF0aW9uSWQoKSkudG9CZShofGVhZGVyc1snWC1Db3JyZWxhdGlvbi1JRCddKTsKICAgIGV4cGVjdChvbkNvcnJlbGF0aW9uSWQpLnRvSGF2ZUJlZW5DYWxsZWRXaXRoKGhlYWRlcnNbJ1gtQ29ycmVsYXRpb24tSUQnXSk7CiAgfSk7CgogIGl0KCdwcmVzZXJ2ZXMgYW4gZXhwbGljaXQgSUQgYW5kIGFkb3B0cyB0aGUgc2VydmVyIGNvcnJlbGF0aW9uIElEJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkuZm4oKS5tb2NrUmVzb2x2ZWQoewogICAgICBvazogdHJ1ZSwKICAgICAgc3RhdHVzOiAyMDAsCiAgICAgIGhlYWRlcnM6IHsgZ2V0OiB2aS5mbigpLm1vY2tSZXR1cm5WYWx1ZSgnc2VydmVyLXRyYWNlLTQyJykgfSwKICAgICAganNvbjogYXN5bmMgKCkgPT4gKHsgb2s6IHRydWUgfSksCiAgICB9KTsKICAgIGdsb2JhbFRoaXMuZmV0Y2ggPSBmZXRjaE1vY2sgYXMgdW5rbm93biBhcyB0eXBlb2YgZmV0Y2g7CiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nKTsKCiAgICBhd2FpdCBjbGllbnQucmVxdWVzdCgnL2FwaS92MS9oZWFsdGgnLCB7CiAgICAgIG1ldGhvZDogJ0dFVCcsCiAgICAgIGNvcnJlbGF0aW9uSWQ6ICdjbGllbnQtdHJhY2UtNDInLAogICAgfSk7CgogICAgY29uc3QgaGVhZGVycyA9IGZldGNoTW9jay5tb2NrLmNhbGxzWzBdPy5bMV0/LmhlYWRlcnMgYXMgUmVjb3JkPHN0cmluZywgc3RyaW5nPjsKICAgIGV4cGVjdChoZWFkZXJzWydYLUNvcnJlbGF0aW9uLUlEJ10pLnRvQmUoJ2NsaWVudC10cmFjZS00MicpOwogICAgZXhwZWN0KGNsaWVudC5nZXRDb3JyZWxhdGlvbklkKCkpLnRvQmUoJ3NlcnZlci10cmFjZS00MicpOwogIH0pOwp9KTsKCmRlc2NyaWJlKCdIdHRwQ2xpZW50IGlkZW1wb3RlbnQgcmV0cmllcycsICgpID0+IHsKICBjb25zdCBvcmlnaW5hbEZldGNoID0gZ2xvYmFsVGhpcy5mZXRjaDsKCiAgYmVmb3JlRWFjaCgoKSA9PiB7CiAgICB2aS51c2VGYWtlVGltZXJzKCk7CiAgfSk7CgogIGFmdGVyRWFjaCgoKSA9PiB7CiAgICBnbG9iYWxUaGlzLmZldGNoID0gb3JpZ2luYWxGZXRjaDsKICAgIHZpLnVzZVJlYWxUaW1lcnMoKTsKICAgIHZpLnJlc3RvcmVBbGxNb2NrcygpOwogIH0pOwoKICBpdCgnZG9lcyBub3QgcmV0cnkgUE9TVCAvdHJhbnNhY3Rpb25zL3RpcCBvbiA1MDAgKG5vbi1pZGVtcG90ZW50KScsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IGZldGNoTW9jayA9IHZpLmZuKCkubW9ja1Jlc29sdmVkKHsKICAgICAgb2s6IGZhbHNlLAogICAgICBzdGF0dXM6IDUwMCwKICAgICAganNvbjogYXN5bmMgKCkgPT4gKHsgZXJyb3I6ICdTZXJ2ZXIgZXJyb3InLCBjb2RlOiAnSU5URVJOQUwnIH0pLAogICAgfSk7CiAgICBnbG9iYWxUaGlzLmZldGNoID0gZmV0Y2hNb2NrIGFzIHVua25vd24gYXMgdHlwZW9mIGZldGNoOwoKICAgIGNvbnN0IGNsaWVudCA9IG5ldyBIdHRwQ2xpZW50KCdodHRwczovL2FwaS5leGFtcGxlLmNvbScsIHsgcmV0cnlBdHRlbXB0czogMyB9KTsKCiAgICBhd2FpdCBleHBlY3QoCiAgICAgIGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3RyYW5zYWN0aW9ucy90aXAnLCB7CiAgICAgICAgbWV0aG9kOiAnUE9TVCcsCiAgICAgICAgYm9keTogeyBjcmVhdG9ySWQ6ICdjMScsIGFtb3VudDogMTAgfSwKICAgICAgfSkKICAgICkucmVqZWN0cy50b0JlSW5zdGFuY2VPZihBcGlFcnJvcik7CgogICAgZXhwZWN0KGZldGNoTW9jaykudG9IYXZlQmVlbkNhbGxlZFRpbWVzKDEpOwogIH0pOwoKICBpdCgnZG9lcyBub3QgcmV0cnkgUE9TVCBvbiA0MDAgRHVwbGljYXRlIHRpcCcsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IGZldGNoTW9jayA9IHZpLmZuKCkubW9ja1Jlc29sdmVkKHsKICAgICAgb2s6IGZhbHNlLAogICAgICBzdGF0dXM6IDQwMCwKICAgICAganNvbjogYXN5bmMgKCkgPT4gKHsgZXJyb3I6ICdEdXBsaWNhdGUgdGlwJywgY29kZTogJ0RVUExJQ0FURScgfSksCiAgICB9KTsKICAgIGdsb2JhbFRoaXMuZmV0Y2ggPSBmZXRjaE1vY2sgYXMgdW5rbm93biBhcyB0eXBlb2YgZmV0Y2g7CgogICAgY29uc3QgY2xpZW50ID0gbmV3IEh0dHBDbGllbnQoJ2h0dHBzOi8vYXBpLmV4YW1wbGUuY29tJywgeyByZXRyeUF0dGVtcHRzOiAzIH0pOwoKICAgIGF3YWl0IGV4cGVjdCgKICAgICAgY2xpZW50LnJlcXVlc3QoJy9hcGkvdjEvdHJhbnNhY3Rpb25zL3RpcCcsIHsKICAgICAgICBtZXRob2Q6ICdQT1NUJywKICAgICAgICBib2R5OiB7IGNyZWF0b3JJZDogJ2MxJywgYW1vdW50OiAxMCB9LAogICAgICB9KQogICAgKS5yZWplY3RzLnRvTWF0Y2hPYmplY3QoeyBzdGF0dXNDb2RlOiA0MDAgfSk7CgogICAgZXhwZWN0KGZldGNoTW9jaykudG9IYXZlQmVlbkNhbGxlZFRpbWVzKDEpOwogIH0pOwoKICBpdCgncmV0cmllcyBHRVQgb24gNTAwIHVwIHRvIG1heEF0dGVtcHRzJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkKICAgICAgLmZuKCkKICAgICAgLm1vY2tSZXNvbHZlZE9uY2UoewogICAgICAgIG9rOiBmYWxzZSwKICAgICAgICBzdGF0dXM6IDUwMCwKICAgICAgICBqc29uOiBhc3luYyAoKSA9PiAoeyBlcnJvcjogJ1NlcnZlciBlcnJvcicgfSksCiAgICAgIH0pCiAgICAgIC5tb2NrUmVzb2x2ZWRPbmNlKHsKICAgICAgICBvazogZmFsc2UsCiAgICAgICAgc3RhdHVzOiA1MDAsCiAgICAgICAganNvbjogYXN5bmMgKCkgPT4gKHsgZXJyb3I6ICdTZXJ2ZXIgZXJyb3InIH0pLAogICAgICB9KQogICAgICAubW9ja1Jlc29sdmVkT25jZSh7CiAgICAgICAgb2s6IHRydWUsCiAgICAgICAganNvbjogYXN5bmMgKCkgPT4gKHsgb2s6IHRydWUgfSksCiAgICAgIH0pOwogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IGZldGNoTW9jayBhcyB1bmtub3duIGFzIHR5cGVvZiBmZXRjaDsKCiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nLCB7IHJldHJ5QXR0ZW1wdHM6IDMgfSk7CgogICAgY29uc3QgcHJvbWlzZSA9IGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL2hlYWx0aCcsIHsgbWV0aG9kOiAnR0VUJyB9KTsKICAgIGF3YWl0IHZpLnJ1bkFsbFRpbWVyc0FzeW5jKCk7CiAgICBjb25zdCByZXN1bHQgPSBhd2FpdCBwcm9taXNlOwoKICAgIGV4cGVjdChyZXN1bHQpLnRvRXF1YWwoeyBvazogdHJ1ZSB9KTsKICAgIGV4cGVjdChmZXRjaE1vY2spLnRvSGF2ZUJlZW5DYWxsZWRUaW1lcygzKTsKICB9KTsKCiAgaXQoJ3JldHJpZXMgUE9TVCB3aGVuIGlzSWRlbXBvdGVudCBpcyB0cnVlJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkKICAgICAgLmZuKCkKICAgICAgLm1vY2tSZXNvbHZlZE9uY2UoewogICAgICAgIG9rOiBmYWxzZSwKICAgICAgICBzdGF0dXM6IDUwMywKICAgICAgICBqc29uOiBhc3luYyAoKSA9PiAoeyBlcnJvcjogJ1VuYXZhaWxhYmxlJyB9KSwKICAgICAgfSkKICAgICAgLm1vY2tSZXNvbHZlZE9uY2UoewogICAgICAgIG9rOiB0cnVlLAogICAgICAgIGpzb246IGFzeW5jICgpID0+ICh7IGlkOiAndGlwLTEnIH0pLAogICAgICB9KTsKICAgIGdsb2JhbFRoaXMuZmV0Y2ggPSBmZXRjaE1vY2sgYXMgdW5rbm93biBhcyB0eXBlb2YgZmV0Y2g7CgogICAgY29uc3QgY2xpZW50ID0gbmV3IEh0dHBDbGllbnQoJ2h0dHBzOi8vYXBpLmV4YW1wbGUuY29tJywgeyByZXRyeUF0dGVtcHRzOiAzIH0pOwoKICAgIGNvbnN0IHByb21pc2UgPSBjbGllbnQucmVxdWVzdCgnL2FwaS92MS90cmFuc2FjdGlvbnMvdGlwJywgewogICAgICBtZXRob2Q6ICdQT1NUJywKICAgICAgYm9keTogeyBjcmVhdG9ySWQ6ICdjMScsIGFtb3VudDogMTAgfSwKICAgICAgaXNJZGVtcG90ZW50OiB0cnVlLAogICAgfSk7CiAgICBhd2FpdCB2aS5ydW5BbGxUaW1lcnNBc3luYygpOwogICAgY29uc3QgcmVzdWx0ID0gYXdhaXQgcHJvbWlzZTsKCiAgICBleHBlY3QocmVzdWx0KS50b0VxdWFsKHsgaWQ6ICd0aXAtMScgfSk7CiAgICBleHBlY3QoZmV0Y2hNb2NrKS50b0hhdmVCZWVuQ2FsbGVkVGltZXMoMik7CiAgfSk7CgogIGl0KCdyZXRyaWVzIFBPU1Qgd2hlbiBJZGVtcG90ZW5jeS1LZXkgaGVhZGVyIGlzIHByZXNlbnQnLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBmZXRjaE1vY2sgPSB2aQogICAgICAuZm4oKQogICAgICAubW9ja1Jlc29sdmVkT25jZSh7CiAgICAgICAgb2s6IGZhbHNlLAogICAgICAgIHN0YXR1czogNTAyLAogICAgICAgIGpzb246IGFzeW5jICgpID0+ICh7IGVycm9yOiAnQmFkIGdhdGV3YXknIH0pLAogICAgICB9KQogICAgICAubW9ja1Jlc29sdmVkT25jZSh7CiAgICAgICAgb2s6IHRydWUsCiAgICAgICAganNvbjogYXN5bmMgKCkgPT4gKHsgaWQ6ICd0aXAtMicgfSksCiAgICAgIH0pOwogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IGZldGNoTW9jayBhcyB1bmtub3duIGFzIHR5cGVvZiBmZXRjaDsKCiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nLCB7IHJldHJ5QXR0ZW1wdHM6IDMgfSk7CgogICAgY29uc3QgcHJvbWlzZSA9IGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3RyYW5zYWN0aW9ucy90aXAnLCB7CiAgICAgIG1ldGhvZDogJ1BPU1QnLAogICAgICBib2R5OiB7IGNyZWF0b3JJZDogJ2MxJywgYW1vdW50OiAxMCB9LAogICAgICBoZWFkZXJzOiB7ICdJZGVtcG90ZW5jeS1LZXknOiAnYWJjLTEyMycgfSwKICAgIH0pOwogICAgYXdhaXQgd mkucnVuQWxsVGltZXJzQXN5bmMoKTsKICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IHByb21pc2U7CgogICAgZXhwZWN0KHJlc3VsdCkudG9FcXVhbCh7IGlkOiAndGlwLTInIH0pOwogICAgZXhwZWN0KGZldGNoTW9jaykudG9IYXZlQmVlbkNhbGxlZFRpbWVzKDIpOwogIH0pOwoKICBpdCgnZG9lcyBub3QgcmV0cnkgREVMRVRFIHdpdGhvdXQgaXNJZGVtcG90ZW50IGZsYWcnLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBmZXRjaE1vY2sgPSB2aS5mbigpLm1vY2tSZXNvbHZlZCh7CiAgICAgIG9rOiBmYWxzZSwKICAgICAgc3RhdHVzOiA1MDAsCiAgICAgIGpzb246IGFzeW5jICgpID0+ICh7IGVycm9yOiAnU2VydmVyIGVycm9yJyB9KSwKICAgIH0pOwogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IGZldGNoTW9jayBhcyB1bmtub3duIGFzIHR5cGVvZiBmZXRjaDsKCiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nLCB7IHJldHJ5QXR0ZW1wdHM6IDMgfSk7CgogICAgYXdhaXQgZXhwZWN0KGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3dhbGxldHMvMScsIHsgbWV0aG9kOiAnREVMRVRFJyB9KSkucmVqZWN0cy50b0JlSW5zdGFuY2VPZihBcGlFcnJvcik7CgogICAgZXhwZWN0KGZldGNoTW9jaykudG9IYXZlQmVlbkNhbGxlZFRpbWVzKDEpOwogIH0pOwoKICBpdCgnaG9ub3JzIGFuIGV4dGVybmFsIGFib3J0IHNpZ25hbCBhbmQgc2tpcHMgcmV0cmllcycsIGFzeW5jICgpID0+IHsKICAgIGxldCBjYXB0dXJlZFNpZ25hbDogQWJvcnRTaWduYWwgfCB1bmRlZmluZWQ7CiAgICBjb25zdCBmZXRjaE1vY2sgPSB2aS5mbigpLm1vY2tJbXBsZW1lbnRhdGlvbigoX3VybDogc3RyaW5nLCBpbml0PzogeyBzaWduYWw/OiBBYm9ydFNpZ25hbCB9KSA9PiB7CiAgICAgIGNhcHR1cmVkU2lnbmFsID0gaW5pdD8uc2lnbmFsOwogICAgICByZXR1cm4gbmV3IFByb21pc2UoKF9yZXNvbHZlLCByZWplY3QpID0+IHsKICAgICAgICAvLyBMaWtlIGEgcmVhbCBmZXRjaCwgYW4gYWxyZWFkeS1hYm9ydGVkIHNpZ25hbCByZWplY3RzIGltbWVkaWF0ZWx5IOKAlAogICAgICAgIC8vIGxpc3RlbmVycyBhbG9uZSBuZXZlciBmaXJlIHJldHJvYWN0aXZlbHkuCiAgICAgICAgaWYgKGluaXQ/LnNpZ25hbD8uYWJvcnRlZCkgewogICAgICAgICAgcmVqZWN0KG5ldyBET01FeGNlcHRpb24oJ0Fib3J0ZWQnLCAnQWJvcnRFcnJvcicpKTsKICAgICAgICAgIHJldHVybjsKICAgICAgICB9CiAgICAgICAgaW5pdD8uc2lnbmFsPy5hZGRFdmVudExpc3RlbmVyKCdhYm9ydCcsICgpID0+IHsKICAgICAgICAgIHJlamVjdChuZXcgRE9NRXhjZXB0aW9uKCdBYm9ydGVkJywgJ0Fib3J0RXJyb3InKSk7CiAgICAgICAgfSk7CiAgICAgIH0pOwogICAgfSk7CiAgICBnbG9iYWxUaGlzLmZldGNoID0gZmV0Y2hNb2NrIGFzIHVua25vd24gYXMgdHlwZW9mIGZldGNoOwoKICAgIGNvbnN0IGNsaWVudCA9IG5ldyBIdHRwQ2xpZW50KCdodHRwczovL2FwaS5leGFtcGxlLmNvbScsIHsgcmV0cnlBdHRlbXB0czogMyB9KTsKICAgIGNvbnN0IGNvbnRyb2xsZXIgPSBuZXcgQWJvcnRDb250cm9sbGVyKCk7CiAgICBjb25zdCBwZW5kaW5nID0gY2xpZW50LnJlcXVlc3QoJy9hcGkvdjEvdHJhbnNhY3Rpb25zL2hpc3RvcnknLCB7CiAgICAgIG1ldGhvZDogJ0dFVCcsCiAgICAgIHNpZ25hbDogY29udHJvbGxlci5zaWduYWwsCiAgICB9KTsKICAgIGNvbnRyb2xsZXIuYWJvcnQoKTsKCiAgICBhd2FpdCBleHBlY3QocGVuZGluZykucmVqZWN0cy50b01hdGNoT2JqZWN0KHsgbmFtZTogJ0Fib3J0RXJyb3InIH0pOwogICAgZXhwZWN0KGZldGNoTW9jaykudG9IYXZlQmVlbkNhbGxlZFRpbWVzKDEpOwogICAgZXhwZWN0KGNhcHR1cmVkU2lnbmFsPy5hYm9ydGVkKS50b0JlKHRydWUpOwogIH0pOwp9KTsKCmZ1bmN0aW9uIHVuYXV0aG9yaXplZCgpIHsKICByZXR1cm4gewogICAgb2s6IGZhbHNlLAogICAgc3RhdHVzOiA0MDEsCiAgICBqc29uOiBhc3luYyAoKSA9PiAoeyBlcnJvcjogJ1VuYXV0aG9yaXplZCcsIGNvZGU6ICdVTkFVVEhPUklaRUQnIH0pLAogIH07Cn0KCmRlc2NyaWJlKCdIdHRwQ2xpZW50IDQwMSBzZXNzaW9uIHJlZnJlc2gnLCAoKSA9PiB7CiAgY29uc3Qgb3JpZ2luYWxGZXRjaCA9IGdsb2JhbFRoaXMuZmV0Y2g7CgogIGFmdGVyRWFjaCgoKSA9PiB7CiAgICBnbG9iYWxUaGlzLmZldGNoID0gb3JpZ2luYWxGZXRjaDsKICAgIHZpLnJlc3RvcmVBbGxNb2NrcygpOwogIH0pOwoKICBpdCgncmVmcmVzaGVzIHRoZSBzZXNzaW9uIGFuZCByZXBsYXlzIHRoZSByZXF1ZXN0IHdpdGggdGhlIG5ldyB0b2tlbicsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IGZldGNoTW9jayA9IHZpCiAgICAgIC5mbigpCiAgICAgIC5tb2NrUmVzb2x2ZWRPbmNlKHVuYXV0aG9yaXplZCgpKQogICAgICAubW9ja1Jlc29sdmVkT25jZSh7IG9rOiB0cnVlLCBqc29uOiBhc3luYyAoKSA9PiAoeyBpZDogJ3VzZXItMScgfSkgfSk7CiAgICBnbG9iYWxUaGlzLmZldGNoID0gZmV0Y2hNb2NrIGFzIHVua25vd24gYXMgdHlwZW9mIGZldGNoOwoKICAgIGNvbnN0IGNsaWVudCA9IG5ldyBIdHRwQ2xpZW50KCdodHRwczovL2FwaS5leGFtcGxlLmNvbScpOwogICAgY2xpZW50LnNldEhlYWRlcignQXV0aG9yaXphdGlvbicsICdCZWFyZXIgc3RhbGUnKTsKCiAgICBsZXQgcmVmcmVzaGVzID0gMDsKICAgIGNsaWVudC5zZXRUb2tlblJlZnJlc2hlcihhc3luYyAoKSA9PiB7CiAgICAgIHJlZnJlc2hlcyArPSAxOwogICAgICBjbGllbnQuc2V0SGVhZGVyKCdBdXRob3JpemF0aW9uJywgJ0JlYXJlciBmcmVzaCcpOwogICAgfSk7CgogICAgYXdhaXQgZXhwZWN0KGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3VzZXJzL21lJywgeyBtZXRob2Q6ICdHRVQnIH0pKS5yZXNvbHZlcy50b0VxdWFsKHsKICAgICAgaWQ6ICd1c2VyLTEnLAogICAgfSk7CgogICAgZXhwZWN0KHJlZnJlc2hlcykudG9CZSgxKTsKICAgIGV4cGVjdChmZXRjaE1vY2spLnRvSGF2ZUJlZW5DYWxsZWRUaW1lcygyKTsKICAgIGNvbnN0IHJlcGxheSA9IGZldGNoTW9jay5tb2NrLmNhbGxzWzFdPy5bMV0gYXMgUmVxdWVzdEluaXQ7CiAgICBleHBlY3QoKHJlcGxheS5oZWFkZXJzIGFzIFJlY29yZDxzdHJpbmcsIHN0cmluZz4pLkF1dGhvcml6YXRpb24pLnRvQmUoJ0JlYXJlciBmcmVzaCcpOwogIH0pOwoKICBpdCgnc3VyZmFjZXMgdGhlIG9yaWdpbmFsIDQwMSB3aGVuIHRoZSByZWZyZXNoIGZhaWxzLCB3aXRob3V0IGxvb3BpbmcnLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBmZXRjaE1vY2sgPSB2aS5mbigpLm1vY2tSZXNvbHZlZCh1bmF1dGhvcml6ZWQoKSk7CiAgICBnbG9iYWxUaGlzLmZldGNoID0gZmV0Y2hNb2NrIGFzIHVua25vd24gYXMgdHlwZW9mIGZldGNoOwoKICAgIGNvbnN0IGNsaWVudCA9IG5ldyBIdHRwQ2xpZW50KCdodHRwczovL2FwaS5leGFtcGxlLmNvbScpOwogICAgY2xpZW50LnNldEhlYWRlcignQXV0aG9yaXphdGlvbicsICdCZWFyZXIgc3RhbGUnKTsKCiAgICBsZXQgcmVmcmVzaGVzID0gMDsKICAgIGNsaWVudC5zZXRUb2tlblJlZnJlc2hlcihhc3luYyAoKSA9PiB7CiAgICAgIHJlZnJlc2hlcyArPSAxOwogICAgICB0aHJvdyBuZXcgRXJyb3IoJ3JlZnJlc2ggcmVqZWN0ZWQnKTsKICAgIH0pOwoKICAgIGF3YWl0IGV4cGVjdChjbGllbnQucmVxdWVzdCgnL2FwaS92MS91c2Vycy9tZScsIHsgbWV0aG9kOiAnR0VUJyB9KSkucmVqZWN0cy50b01hdGNoT2JqZWN0KHsKICAgICAgc3RhdHVzQ29kZTogNDAxLAogICAgfSk7CgogICAgZXhwZWN0KHJlZnJlc2hlcykudG9CZSgxKTsKICAgIGV4cGVjdChmZXRjaE1vY2spLnRvSGF2ZUJlZW5DYWxsZWRUaW1lcygxKTsKICB9KTsKCiAgaXQoJ2RvZXMgbm90IHJlZnJlc2ggd2hlbiB0aGUgZW5kcG9pbnQgaXMgdGhlIHJlZnJlc2ggZW5kcG9pbnQgaXRzZWxmJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkuZm4oKS5tb2NrUmVzb2x2ZWQodW5hdXRob3JpemVkKCkpOwogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IGZldGNoTW9jayBhcyB1bmtub3duIGFzIHR5cGVvZiBmZXRjaDsKCiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nKTsKICAgIGNsaWVudC5zZXRIZWFkZXIoJ0F1dGhvcml6YXRpb24nLCAnQmVhcmVyIHN0YWxlJyk7CgogICAgbGV0IHJlZnJlc2hlcyA9IDA7CiAgICBjbGllbnQuc2V0VG9rZW5SZWZyZXNoZXIoYXN5bmMgKCkgPT4gewogICAgICByZWZyZXNoZXMgKz0gMTsKICAgIH0pOwoKICAgIGF3YWl0IGV4cGVjdChjbGllbnQucmVxdWVzdCgnL2F1dGgvcmVmcmVzaCcsIHsgbWV0aG9kOiAnUE9TVCcgfSkpLnJlamVjdHMudG9NYXRjaE9iamVjdCh7CiAgICAgIHN0YXR1c0NvZGU6IDQwMSwKICAgIH0pOwoKICAgIGV4cGVjdChyZWZyZXNoZXMpLnRvQmUoMCk7CiAgICBleHBlY3QoZmV0Y2hNb2NrKS50b0hhdmVCZWVuQ2FsbGVkVGltZXMoMSk7CiAgfSk7CgogIGl0KCdkb2VzIG5vdCByZWZyZXNoIGEgcmVxdWVzdCB0aGF0IGNhcnJpZXMgbm8gY3JlZGVudGlhbHMnLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBmZXRjaE1vY2sgPSB2aS5mbigpLm1vY2tSZXNvbHZlZCh1bmF1dGhvcml6ZWQoKSk7CiAgICBnbG9iYWxUaGlzLmZldGNoID0gZmV0Y2hNb2NrIGFzIHVua25vd24gYXMgdHlwZW9mIGZldGNoOwoKICAgIGNvbnN0IGNsaWVudCA9IG5ldyBIdHRwQ2xpZW50KCdodHRwczovL2FwaS5leGFtcGxlLmNvbScpOwoKICAgIGxldCByZWZyZXNoZXMgPSAwOwogICAgY2xpZW50LnNldFRva2VuUmVmcmVzaGVyKGFzeW5jICgpID0+IHsKICAgICAgcmVmcmVzaGVzICs9IDE7CiAgICB9KTsKCiAgICBhd2FpdCBleHBlY3QoY2xpZW50LnJlcXVlc3QoJy9hcGkvdjEvdXNlcnMvbWUnLCB7IG1ldGhvZDogJ0dFVCcgfSkpLnJlamVjdHMudG9NYXRjaE9iamVjdCh7CiAgICAgIHN0YXR1c0NvZGU6IDQwMSwKICAgIH0pOwoKICAgIGV4cGVjdChyZWZyZXNoZXMpLnRvQmUoMCk7CiAgfSk7CgogIGl0KCdzaGFyZXMgYSBzaW5nbGUgcmVmcmVzaCBhY3Jvc3MgY29uY3VycmVudCA0MDFzJywgYXN5bmMgKCkgPT4gewogICAgbGV0IGNhbGwgPSAwOwogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkuZm4oKS5tb2NrSW1wbGVtZW50YXRpb24oYXN5bmMgKCkgPT4gewogICAgICBjYWxsICs9IDE7CiAgICAgIGlmIChjYWxsIDw9IDIpIHJldHVybiB1bmF1dGhvcml6ZWQoKTsKICAgICAgcmV0dXJuIHsgb2s6IHRydWUsIGpzb246IGFzeW5jICgpID0+ICh7IGNhbGwgfSkgfTsKICAgIH0pOwogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IGZldGNoTW9jayBhcyB1bmtub3duIGFzIHR5cGVvZiBmZXRjaDsKCiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nKTsKICAgIGNsaWVudC5zZXRIZWFkZXIoJ0F1dGhvcml6YXRpb24nLCAnQmVhcmVyIHN0YWxlJyk7CgogICAgbGV0IHJlZnJlc2hlcyA9IDA7CiAgICBjbGllbnQuc2V0VG9rZW5SZWZyZXNoZXIoYXN5bmMgKCkgPT4gewogICAgICByZWZyZXNoZXMgKz0gMTsKICAgICAgYXdhaXQgUHJvbWlzZS5yZXNvbHZlKCk7CiAgICAgIGNsaWVudC5zZXRIZWFkZXIoJ0F1dGhvcml6YXRpb24nLCAnQmVhcmVyIGZyZXNoJyk7CiAgICB9KTsKCiAgICBjb25zdCBbYSwgYl0gPSBhd2FpdCBQcm9taXNlLmFsbChbCiAgICAgIGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL2FscGhhJywgeyBtZXRob2Q6ICdHRVQnIH0pLAogICAgICBjbGllbnQucmVxdWVzdCgnL2FwaS92MS9iZXRhJywgeyBtZXRob2Q6ICdHRVQnIH0pLAogICAgXSk7CgogICAgZXhwZWN0KHJlZnJlc2hlcykudG9CZSgxKTsKICAgIGV4cGVjdChhKS50b0JlRGVmaW5lZCgpOwogICAgZXhwZWN0KGIpLnRvQmVEZWZpbmVkKCk7CiAgICBleHBlY3QoZmV0Y2hNb2NrKS50b0hhdmVCZWVuQ2FsbGVkVGltZXMoNCk7CiAgfSk7CgogIGl0KCdyZXBsYXlzIGEgbm9uLWlkZW1wb3RlbnQgcmVxdWVzdCBhZnRlciByZWZyZXNoJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkKICAgICAgLmZuKCkKICAgICAgLm1vY2tSZXNvbHZlZE9uY2UodW5hdXRob3JpemVkKCkpCiAgICAgIC5tb2NrUmVzb2x2ZWRPbmNlKHsgb2s6IHRydWUsIGpzb246IGFzeW5jICgpID0+ICh7IGlkOiAndGlwLTEnIH0pIH0pOwogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IGZldGNoTW9jayBhcyB1bmtub3duIGFzIHR5cGVvZiBmZXRjaDsKCiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nKTsKICAgIGNsaWVudC5zZXRIZWFkZXIoJ0F1dGhvcml6YXRpb24nLCAnQmVhcmVyIHN0YWxlJyk7CgogICAgbGV0IHJlZnJlc2hlcyA9IDA7CiAgICBjbGllbnQuc2V0VG9rZW5SZWZyZXNoZXIoYXN5bmMgKCkgPT4gewogICAgICByZWZyZXNoZXMgKz0gMTsKICAgICAgY2xpZW50LnNldEhlYWRlcignQXV0aG9yaXphdGlvbicsICdCZWFyZXIgZnJlc2gnKTsKICAgIH0pOwoKICAgIGF3YWl0IGV4cGVjdCgKICAgICAgY2xpZW50LnJlcXVlc3QoJy9hcGkvdjEvdHJhbnNhY3Rpb25zL3RpcCcsIHsKICAgICAgICBtZXRob2Q6ICdQT1NUJywKICAgICAgICBib2R5OiB7IGNyZWF0b3JJZDogJ2MxJywgYW1vdW50OiAxMCB9LAogICAgICB9KQogICAgKS5yZXNvbHZlcy50b0VxdWFsKHsgaWQ6ICd0aXAtMScgfSk7CgogICAgZXhwZWN0KHJlZnJlc2hlcykudG9CZSgxKTsKICAgIGV4cGVjdChmZXRjaE1vY2spLnRvSGF2ZUJlZW5DYWxsZWRUaW1lcygyKTsKICB9KTsKfSk7CgpkZXNjcmliZSgnSHR0cENsaWVudCByZXF1ZXN0IGRlZHVwbGljYXRpb24nLCAoKSA9PiB7CiAgY29uc3Qgb3JpZ2luYWxGZXRjaCA9IGdsb2JhbFRoaXMuZmV0Y2g7CgogIGFmdGVyRWFjaCgoKSA9PiB7CiAgICBnbG9iYWxUaGlzLmZldGNoID0gb3JpZ2luYWxGZXRjaDsKICAgIHZpLnJlc3RvcmVBbGxNb2NrcygpOwogIH0pOwoKICBpdCgnZGVkdXBsaWNhdGVzIGlkZW50aWNhbCBjb25jdXJyZW50IEdFVCByZXF1ZXN0cyBpbnRvIGEgc2luZ2xlIG5ldHdvcmsgY2FsbCcsIGFzeW5jICgpID0+IHsKICAgIGxldCByZXNvbHZlRmV0Y2g6ICgodmFsdWU6IHVua25vd24pID0+IHZvaWQpIHwgdW5kZWZpbmVkOwogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkuZm4oKS5tb2NrSW1wbGVtZW50YXRpb24oCiAgICAgICgpID0+CiAgICAgICAgbmV3IFByb21pc2UoKHJlc29sdmUpID0+IHsKICAgICAgICAgIHJlc29sdmVGZXRjaCA9IHJlc29sdmUgYXMgKHZhbHVlOiB1bmtub3duKSA9PiB2b2lkOwogICAgICAgIH0pCiAgICApOwogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IGZldGNoTW9jayBhcyB1bmtub3duIGFzIHR5cGVvZiBmZXRjaDsKCiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nKTsKCiAgICBjb25zdCBwMSA9IGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3RpcHMvMTIzJywgeyBtZXRob2Q6ICdHRVQnIH0pOwogICAgY29uc3QgcDIgPSBjbGllbnQucmVxdWVzdCgnL2FwaS92MS90aXBzLzEyMycsIHsgbWV0aG9kOiAnR0VUJyB9KTsKCiAgICBleHBlY3QoZmV0Y2hNb2NrKS50b0hhdmVCZWVuQ2FsbGVkVGltZXMoMSk7CgogICAgcmVzb2x2ZUZldGNoPy4oewogICAgICBvazogdHJ1ZSwKICAgICAgc3RhdHVzOiAyMDAsCiAgICAgIGhlYWRlcnM6IHsgZ2V0OiB2aS5mbigpLm1vY2tSZXR1cm5WYWx1ZShudWxsKSB9LAogICAgICBqc29uOiBhc3luYyAoKSA9PiAoeyBpZDogJzEyMycsIGFtb3VudDogNTAgfSksCiAgICB9KTsKCiAgICBjb25zdCBbYSwgYl0gPSBhd2FpdCBQcm9taXNlLmFsbChbcDEsIHAyXSk7CiAgICBleHBlY3QoYSkudG9FcXVhbCh7IGlkOiAnMTIzJywgYW1vdW50OiA1MCB9KTsKICAgIGV4cGVjdChiKS50b0VxdWFsKHsgaWQ6ICcxMjMnLCBhbW91bnQ6IDUwIH0pOwogICAgZXhwZWN0KGZldGNoTW9jaykudG9IYXZlQmVlbkNhbGxlZFRpbWVzKDEpOwogIH0pOwoKICBpdCgncmV0dXJucyB0aGUgc2FtZSBwcm9taXNlIGluc3RhbmNlIHRvIGNvbmN1cnJlbnQgY2FsbGVycycsIGFzeW5jICgpID0+IHsKICAgIGxldCByZXNvbHZlRmV0Y2g6ICgodmFsdWU6IHVua25vd24pID0+IHZvaWQpIHwgdW5kZWZpbmVkOwogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkuZm4oKS5tb2NrSW1wbGVtZW50YXRpb24oCiAgICAgICgpID0+CiAgICAgICAgbmV3IFByb21pc2UoKHJlc29sdmUpID0+IHsKICAgICAgICAgIHJlc29sdmVGZXRjaCA9IHJlc29sdmUgYXMgKHZhbHVlOiB1bmtub3duKSA9PiB2b2lkOwogICAgICAgIH0pCiAgICApOwogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IGZldGNoTW9jayBhcyB1bmtub3duIGFzIHR5cGVvZiBmZXRjaDsKCiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nKTsKCiAgICBjb25zdCBwMSA9IGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3RpcHMvMTIzJywgeyBtZXRob2Q6ICdHRVQnIH0pOwogICAgY29uc3QgcDIgPSBjbGllbnQucmVxdWVzdCgnL2FwaS92MS90aXBzLzEyMycsIHsgbWV0aG9kOiAnR0VUJyB9KTsKCiAgICBleHBlY3QocDEpLnRvQmUocDIpOwoKICAgIHJlc29sdmVGZXRjaD8uKHsKICAgICAgb2s6IHRydWUsCiAgICAgIHN0YXR1czogMjAwLAogICAgICBoZWFkZXJzOiB7IGdldDogdmkuZm4oKS5tb2NrUmV0dXJuVmFsdWUobnVsbCkgfSwKICAgICAganNvbjogYXN5bmMgKCkgPT4gKHsgaWQ6ICcxMjMnIH0pLAogICAgfSk7CgogICAgYXdhaXQgcDE7CiAgfSk7CgogIGl0KCdjbGVhcnMgdGhlIGRlZHVwbGljYXRpb24gY2FjaGUgYWZ0ZXIgdGhlIHJlc3BvbnNlIGlzIHJlY2VpdmVkJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkuZm4oKS5tb2NrUmVzb2x2ZWQoewogICAgICBvazogdHJ1ZSwKICAgICAgc3RhdHVzOiAyMDAsCiAgICAgIGhlYWRlcnM6IHsgZ2V0OiB2aS5mbigpLm1vY2tSZXR1cm5WYWx1ZShudWxsKSB9LAogICAgICBqc29uOiBhc3luYyAoKSA9PiAoeyBpZDogJzEyMycgfSksCiAgICB9KTsKICAgIGdsb2JhbFRoaXMuZmV0Y2ggPSBmZXRjaE1vY2sgYXMgdW5rbm93biBhcyB0eXBlb2YgZmV0Y2g7CgogICAgY29uc3QgY2xpZW50ID0gbmV3IEh0dHBDbGllbnQoJ2h0dHBzOi8vYXBpLmV4YW1wbGUuY29tJyk7CgogICAgYXdhaXQgY2xpZW50LnJlcXVlc3QoJy9hcGkvdjEvdGlwcy8xMjMnLCB7IG1ldGhvZDogJ0dFVCcgfSk7CiAgICBhd2FpdCBjbGllbnQucmVxdWVzdCgnL2FwaS92MS90aXBzLzEyMycsIHsgbWV0aG9kOiAnR0VUJyB9KTsKCiAgICBleHBlY3QoZmV0Y2hNb2NrKS50b0hhdmVCZWVuQ2FsbGVkVGltZXMoMik7CiAgfSk7CgogIGl0KCdkb2VzIG5vdCBkZWR1cGxpY2F0ZSByZXF1ZXN0cyB3aXRoIGRpZmZlcmVudCBwYXJhbWV0ZXJzJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkuZm4oKS5tb2NrUmVzb2x2ZWQoewogICAgICBvazogdHJ1ZSwKICAgICAgc3RhdHVzOiAyMDAsCiAgICAgIGhlYWRlcnM6IHsgZ2V0OiB2aS5mbigpLm1vY2tSZXR1cm5WYWx1ZShudWxsKSB9LAogICAgICBqc29uOiBhc3luYyAoKSA9PiAoeyBvazogdHJ1ZSB9KSwKICAgIH0pOwogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IGZldGNoTW9jayBhcyB1bmtub3duIGFzIHR5cGVvZiBmZXRjaDsKCiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nKTsKCiAgICBhd2FpdCBQcm9taXNlLmFsbChbCiAgICAgIGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3RpcHMvMTIzJywgeyBtZXRob2Q6ICdHRVQnIH0pLAogICAgICBjbGllbnQucmVxdWVzdCgnL2FwaS92MS90aXBzLzQ1NicsIHsgbWV0aG9kOiAnR0VUJyB9KSwKICAgIF0pOwoKICAgIGV4cGVjdChmZXRjaE1vY2spLnRvSGF2ZUJlZW5DYWxsZWRUaW1lcygyKTsKICB9KTsKCiAgaXQoJ2NhbiBiZSBkaXNhYmxlZCB2aWEgQ2xpZW50Q29uZmlnJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkuZm4oKS5tb2NrUmVzb2x2ZWQoewogICAgICBvazogdHJ1ZSwKICAgICAgc3RhdHVzOiAyMDAsCiAgICAgIGhlYWRlcnM6IHsgZ2V0OiB2aS5mbigpLm1vY2tSZXR1cm5WYWx1ZShudWxsKSB9LAogICAgICBqc29uOiBhc3luYyAoKSA9PiAoeyBpZDogJzEyMycgfSksCiAgICB9KTsKICAgIGdsb2JhbFRoaXMuZmV0Y2ggPSBmZXRjaE1vY2sgYXMgdW5rbm93biBhcyB0eXBlb2YgZmV0Y2g7CgogICAgY29uc3QgY2xpZW50ID0gbmV3IEh0dHBDbGllbnQoJ2h0dHBzOi8vYXBpLmV4YW1wbGUuY29tJywgewogICAgICBkZWR1cGxpY2F0aW9uOiBmYWxzZSwKICAgIH0pOwoKICAgIGF3YWl0IFByb21pc2UuYWxsKFsKICAgICAgY2xpZW50LnJlcXVlc3QoJy9hcGkvdjEvdGlwcy8xMjMnLCB7IG1ldGhvZDogJ0dFVCcgfSksCiAgICAgIGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3RpcHMvMTIzJywgeyBtZXRob2Q6ICdHRVQnIH0pLAogICAgXSk7CgogICAgZXhwZWN0KGZldGNoTW9jaykudG9IYXZlQmVlbkNhbGxlZFRpbWVzKDIpOwogIH0pOwoKICBpdCgnZGVkdXBsaWNhdGVzIGJ5IG1ldGhvZCBhbmQgYm9keSBmb3IgUE9TVCByZXF1ZXN0cycsIGFzeW5jICgpID0+IHsKICAgIGxldCByZXNvbHZlRmV0Y2g6ICgodmFsdWU6IHVua25vd24pID0+IHZvaWQpIHwgdW5kZWZpbmVkOwogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkuZm4oKS5tb2NrSW1wbGVtZW50YXRpb24oCiAgICAgICgpID0+CiAgICAgICAgbmV3IFByb21pc2UoKHJlc29sdmUpID0+IHsKICAgICAgICAgIHJlc29sdmVGZXRjaCA9IHJlc29sdmUgYXMgKHZhbHVlOiB1bmtub3duKSA9PiB2b2lkOwogICAgICAgIH0pCiAgICApOwogICAgZ2xvYmFsVGhpcy5mZXRjaCA9IGZldGNoTW9jayBhcyB1bmtub3duIGFzIHR5cGVvZiBmZXRjaDsKCiAgICBjb25zdCBjbGllbnQgPSBuZXcgSHR0cENsaWVudCgnaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20nKTsKCiAgICBjb25zdCBwMSA9IGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3RyYW5zYWN0aW9ucy90aXAnLCB7CiAgICAgIG1ldGhvZDogJ1BPU1QnLAogICAgICBib2R5OiB7IGNyZWF0b3JJZDogJ2MxJywgYW1vdW50OiAxMCB9LAogICAgfSk7CiAgICBjb25zdCBwMiA9IGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3RyYW5zYWN0aW9ucy90aXAnLCB7CiAgICAgIG1ldGhvZDogJ1BPU1QnLAogICAgICBib2R5OiB7IGNyZWF0b3JJZDogJ2MxJywgYW1vdW50OiAxMCB9LAogICAgfSk7CgogICAgZXhwZWN0KGZldGNoTW9jaykudG9IYXZlQmVlbkNhbGxlZFRpbWVzKDEpOwoKICAgIHJlc29sdmVGZXRjaD8uKHsKICAgICAgb2s6IHRydWUsCiAgICAgIHN0YXR1czogMjAwLAogICAgICBoZWFkZXJzOiB7IGdldDogdmkuZm4oKS5tb2NrUmV0dXJuVmFsdWUobnVsbCkgfSwKICAgICAganNvbjogYXN5bmMgKCkgPT4gKHsgaWQ6ICd0aXAtMScgfSksCiAgICB9KTsKCiAgICBjb25zdCBbYSwgYl0gPSBhd2FpdCBQcm9taXNlLmFsbChbcDEsIHAyXSk7CiAgICBleHBlY3QoYSkudG9FcXVhbCh7IGlkOiAndGlwLTEnIH0pOwogICAgZXhwZWN0KGIpLnRvRXF1YWwoeyBpZDogJ3RpcC0xJyB9KTsKICAgIGV4cGVjdChmZXRjaE1vY2spLnRvSGF2ZUJlZW5DYWxsZWRUaW1lcygxKTsKICB9KTsKCiAgaXQoJ3JlbW92ZXMgdGhlIHBlbmRpbmcgZW50cnkgd2hlbiB0aGUgcmVxdWVzdCByZWplY3RzJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgZmV0Y2hNb2NrID0gdmkKICAgICAgLmZuKCkKICAgICAgLm1vY2tSZXNvbHZlZE9uY2UoewogICAgICAgIG9rOiBmYWxzZSwKICAgICAgICBzdGF0dXM6IDUwMCwKICAgICAgICBqc29uOiBhc3luYyAoKSA9PiAoeyBlcnJvcjogJ1NlcnZlciBlcnJvcicgfSksCiAgICAgIH0pCiAgICAgIC5tb2NrUmVzb2x2ZWQoewogICAgICAgIG9rOiB0cnVlLAogICAgICAgIHN0YXR1czogMjAwLAogICAgICAgIGhlYWRlcnM6IHsgZ2V0OiB2aS5mbigpLm1vY2tSZXR1cm5WYWx1ZShudWxsKSB9LAogICAgICAgIGpzb246IGFzeW5jICgpID0+ICh7IGlkOiAnMTIzJyB9KSwKICAgICAgfSk7CiAgICBnbG9iYWxUaGlzLmZldGNoID0gZmV0Y2hNb2NrIGFzIHVua25vd24gYXMgdHlwZW9mIGZldGNoOwoKICAgIGNvbnN0IGNsaWVudCA9IG5ldyBIdHRwQ2xpZW50KCdodHRwczovL2FwaS5leGFtcGxlLmNvbScsIHsgcmV0cnlBdHRlbXB0czogMCB9KTsKCiAgICBhd2FpdCBleHBlY3QoCiAgICAgIGNsaWVudC5yZXF1ZXN0KCcvYXBpL3YxL3RpcHMvMTIzJywgeyBtZXRob2Q6ICdHRVQnIH0pCiAgICApLnJlamVjdHMudG9CZUlu c3RhbmNlT2YoQXBpRXJyb3IpOwoKICAgIGF3YWl0IGV4cGVjdCgKICAgICAgY2xpZW50LnJlcXVlc3QoJy9hcGkvdjEvdGlwcy8xMjMnLCB7IG1ldGhvZDogJ0dFVCcgfSkKICAgICkucmVzb2x2ZXMudG9FcXVhbCh7IGlkOiAnMTIzJyB9KTsKCiAgICBleHBlY3QoZmV0Y2hNb2NrKS50b0hhdmVCZWVuQ2FsbGVkVGltZXMoMik7CiAgfSk7Cn0pOwo=
+/**
+ * HttpClient retry / idempotency / session-refresh tests
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { HttpClient } from './http-client';
+import { ApiError, DorisioError } from '../types';
+import type { ErrorHandlerContext } from '../types/errors';
+
+describe('HttpClient correlation IDs', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it('generates and sends a correlation ID for every request', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: vi.fn().mockReturnValue(null) },
+      json: async () => ({ ok: true }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const onCorrelationId = vi.fn();
+    const client = new HttpClient('https://api.example.com', { onCorrelationId });
+
+    await client.request('/api/v1/health', { method: 'GET' });
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<string, string>;
+    expect(headers['X-Correlation-ID']).toMatch(/^correlation-/);
+    expect(client.getCorrelationId()).toBe(headers['X-Correlation-ID']);
+    expect(onCorrelationId).toHaveBeenCalledWith(headers['X-Correlation-ID']);
+  });
+
+  it('preserves an explicit ID and adopts the server correlation ID', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: vi.fn().mockReturnValue('server-trace-42') },
+      json: async () => ({ ok: true }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const client = new HttpClient('https://api.example.com');
+
+    await client.request('/api/v1/health', {
+      method: 'GET',
+      correlationId: 'client-trace-42',
+    });
+
+    const headers = fetchMock.mock.calls[0]?.[1]?.headers as Record<string, string>;
+    expect(headers['X-Correlation-ID']).toBe('client-trace-42');
+    expect(client.getCorrelationId()).toBe('server-trace-42');
+  });
+});
+
+describe('HttpClient idempotent retries', () => {
+  const originalFetch = globalThis.fetch;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('does not retry POST /transactions/tip on 500 (non-idempotent)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: 'Server error', code: 'INTERNAL' }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', { retryAttempts: 3 });
+
+    await expect(
+      client.request('/api/v1/transactions/tip', {
+        method: 'POST',
+        body: { creatorId: 'c1', amount: 10 },
+      })
+    ).rejects.toBeInstanceOf(ApiError);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry POST on 400 Duplicate tip', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ error: 'Duplicate tip', code: 'DUPLICATE' }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', { retryAttempts: 3 });
+
+    await expect(
+      client.request('/api/v1/transactions/tip', {
+        method: 'POST',
+        body: { creatorId: 'c1', amount: 10 },
+      })
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries GET on 500 up to maxAttempts', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: 'Server error' }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: 'Server error' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ ok: true }),
+      });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', { retryAttempts: 3 });
+
+    const promise = client.request('/api/v1/health', { method: 'GET' });
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result).toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('retries POST when isIdempotent is true', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: async () => ({ error: 'Unavailable' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 'tip-1' }),
+      });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', { retryAttempts: 3 });
+
+    const promise = client.request('/api/v1/transactions/tip', {
+      method: 'POST',
+      body: { creatorId: 'c1', amount: 10 },
+      isIdempotent: true,
+    });
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result).toEqual({ id: 'tip-1' });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries POST when Idempotency-Key header is present', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 502,
+        json: async () => ({ error: 'Bad gateway' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 'tip-2' }),
+      });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', { retryAttempts: 3 });
+
+    const promise = client.request('/api/v1/transactions/tip', {
+      method: 'POST',
+      body: { creatorId: 'c1', amount: 10 },
+      headers: { 'Idempotency-Key': 'abc-123' },
+    });
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result).toEqual({ id: 'tip-2' });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry DELETE without isIdempotent flag', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: 'Server error' }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', { retryAttempts: 3 });
+
+    await expect(client.request('/api/v1/wallets/1', { method: 'DELETE' })).rejects.toBeInstanceOf(
+      ApiError
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('honors an external abort signal and skips retries', async () => {
+    let capturedSignal: AbortSignal | undefined;
+    const fetchMock = vi.fn().mockImplementation((_url: string, init?: { signal?: AbortSignal }) => {
+      capturedSignal = init?.signal;
+      return new Promise((_resolve, reject) => {
+        // Like a real fetch, an already-aborted signal rejects immediately —
+        // listeners alone never fire retroactively.
+        if (init?.signal?.aborted) {
+          reject(new DOMException('Aborted', 'AbortError'));
+          return;
+        }
+        init?.signal?.addEventListener('abort', () => {
+          reject(new DOMException('Aborted', 'AbortError'));
+        });
+      });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', { retryAttempts: 3 });
+    const controller = new AbortController();
+    const pending = client.request('/api/v1/transactions/history', {
+      method: 'GET',
+      signal: controller.signal,
+    });
+    controller.abort();
+
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(capturedSignal?.aborted).toBe(true);
+  });
+});
+
+function unauthorized() {
+  return {
+    ok: false,
+    status: 401,
+    json: async () => ({ error: 'Unauthorized', code: 'UNAUTHORIZED' }),
+  };
+}
+
+describe('HttpClient 401 session refresh', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it('refreshes the session and replays the request with the new token', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(unauthorized())
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'user-1' }) });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com');
+    client.setHeader('Authorization', 'Bearer stale');
+
+    let refreshes = 0;
+    client.setTokenRefresher(async () => {
+      refreshes += 1;
+      client.setHeader('Authorization', 'Bearer fresh');
+    });
+
+    await expect(client.request('/api/v1/users/me', { method: 'GET' })).resolves.toEqual({
+      id: 'user-1',
+    });
+
+    expect(refreshes).toBe(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const replay = fetchMock.mock.calls[1]?.[1] as RequestInit;
+    expect((replay.headers as Record<string, string>).Authorization).toBe('Bearer fresh');
+  });
+
+  it('surfaces the original 401 when the refresh fails, without looping', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(unauthorized());
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com');
+    client.setHeader('Authorization', 'Bearer stale');
+
+    let refreshes = 0;
+    client.setTokenRefresher(async () => {
+      refreshes += 1;
+      throw new Error('refresh rejected');
+    });
+
+    await expect(client.request('/api/v1/users/me', { method: 'GET' })).rejects.toMatchObject({
+      statusCode: 401,
+    });
+
+    expect(refreshes).toBe(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not refresh when the endpoint is the refresh endpoint itself', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(unauthorized());
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com');
+    client.setHeader('Authorization', 'Bearer stale');
+
+    let refreshes = 0;
+    client.setTokenRefresher(async () => {
+      refreshes += 1;
+    });
+
+    await expect(client.request('/auth/refresh', { method: 'POST' })).rejects.toMatchObject({
+      statusCode: 401,
+    });
+
+    expect(refreshes).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not refresh a request that carries no credentials', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(unauthorized());
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com');
+
+    let refreshes = 0;
+    client.setTokenRefresher(async () => {
+      refreshes += 1;
+    });
+
+    await expect(client.request('/api/v1/users/me', { method: 'GET' })).rejects.toMatchObject({
+      statusCode: 401,
+    });
+
+    expect(refreshes).toBe(0);
+  });
+
+  it('shares a single refresh across concurrent 401s', async () => {
+    let call = 0;
+    const fetchMock = vi.fn().mockImplementation(async () => {
+      call += 1;
+      if (call <= 2) return unauthorized();
+      return { ok: true, json: async () => ({ call }) };
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com');
+    client.setHeader('Authorization', 'Bearer stale');
+
+    let refreshes = 0;
+    client.setTokenRefresher(async () => {
+      refreshes += 1;
+      await Promise.resolve();
+      client.setHeader('Authorization', 'Bearer fresh');
+    });
+
+    const [a, b] = await Promise.all([
+      client.request('/api/v1/alpha', { method: 'GET' }),
+      client.request('/api/v1/beta', { method: 'GET' }),
+    ]);
+
+    expect(refreshes).toBe(1);
+    expect(a).toBeDefined();
+    expect(b).toBeDefined();
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('replays a non-idempotent POST after a 401 (auth retry is exempt)', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(unauthorized())
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'tip-1' }) });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com');
+    client.setHeader('Authorization', 'Bearer stale');
+    client.setTokenRefresher(async () => {
+      client.setHeader('Authorization', 'Bearer fresh');
+    });
+
+    await expect(
+      client.request('/api/v1/transactions/tip', { method: 'POST', body: { amount: 10 } })
+    ).resolves.toEqual({ id: 'tip-1' });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('HttpClient diagnostics and request deduplication', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('logs sanitized request and response metadata when debug is enabled', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const logger = vi.fn();
+    const client = new HttpClient('https://api.example.com', {
+      debug: true,
+      logger,
+      retryAttempts: 1,
+      headers: { Authorization: 'Bearer should-not-leak' },
+    });
+
+    await client.request('/api/v1/debug', {
+      method: 'POST',
+      body: { token: 'secret-token', value: 'safe' },
+    });
+
+    expect(logger).toHaveBeenCalledTimes(2);
+    expect(logger.mock.calls[0]?.[0]).toBe('[DORISIO] request');
+    expect(logger.mock.calls[0]?.[1]).toMatchObject({
+      body: { token: '[REDACTED]', value: 'safe' },
+      headers: { Authorization: '[REDACTED]' },
+    });
+    expect(logger.mock.calls[1]?.[0]).toBe('[DORISIO] response');
+    expect(logger.mock.calls[1]?.[1]).toMatchObject({ status: 200, elapsedMs: expect.any(Number) });
+  });
+
+  it('shares identical in-flight requests and reuses the result within the window', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, status: 200, json: async () => ({ id: 1 }) });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const client = new HttpClient('https://api.example.com', {
+      deduplicateRequests: true,
+      deduplicationWindow: 1000,
+      retryAttempts: 1,
+    });
+
+    const first = client.request('/api/v1/items', { method: 'GET' });
+    const second = client.request('/api/v1/items', { method: 'GET' });
+    await expect(Promise.all([first, second])).resolves.toEqual([{ id: 1 }, { id: 1 }]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not share requests with different bodies and clears rejected entries', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ id: 1 }) })
+      .mockRejectedValueOnce(new Error('network down'))
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ id: 2 }) });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const client = new HttpClient('https://api.example.com', {
+      deduplicateRequests: true,
+      deduplicationWindow: 1000,
+      retryAttempts: 1,
+    });
+
+    await client.request('/api/v1/items', { method: 'POST', body: { id: 1 } });
+    await expect(
+      client.request('/api/v1/items', { method: 'POST', body: { id: 2 } })
+    ).rejects.toThrow('network down');
+    await expect(
+      client.request('/api/v1/items', { method: 'POST', body: { id: 2 } })
+    ).resolves.toEqual({
+      id: 2,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('HttpClient custom error handlers', () => {
+  const originalFetch = globalThis.fetch;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('calls error handler and retries with custom delay', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        json: async () => ({ error: 'Rate limited', code: 'RATE_LIMITED' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true }),
+      });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', {
+      retryAttempts: 3,
+      errorHandler: async (error: DorisioError) => {
+        if (error.statusCode === 429) {
+          return { action: 'retry', delayMs: 100 };
+        }
+        return { action: 'throw' };
+      },
+    });
+
+    const promise = client.request('/api/v1/data', { method: 'GET' });
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result).toEqual({ success: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('calls error handler and returns fallback value', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: 'Server error', code: 'INTERNAL' }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', {
+      retryAttempts: 3,
+      errorHandler: async (error: DorisioError) => {
+        if (error.statusCode && error.statusCode >= 500) {
+          return { action: 'fallback', fallbackValue: { cached: true } };
+        }
+        return { action: 'throw' };
+      },
+    });
+
+    const result = await client.request('/api/v1/data', { method: 'GET' });
+
+    expect(result).toEqual({ cached: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls error handler and throws when action is throw', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ error: 'Bad request', code: 'BAD_REQUEST' }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', {
+      retryAttempts: 3,
+      errorHandler: async () => {
+        return { action: 'throw' };
+      },
+    });
+
+    await expect(client.request('/api/v1/data', { method: 'GET' })).rejects.toBeInstanceOf(ApiError);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('provides error context to handler', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      json: async () => ({ error: 'Rate limited' }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    let capturedContext: ErrorHandlerContext = {
+      method: 'GET',
+      path: '',
+    };
+    const client = new HttpClient('https://api.example.com', {
+      retryAttempts: 1,
+      errorHandler: async (_error: DorisioError, context: ErrorHandlerContext) => {
+        capturedContext = context;
+        return { action: 'throw' };
+      },
+    });
+
+    await expect(
+      client.request('/api/v1/data', { method: 'POST', body: { test: 'value' } })
+    ).rejects.toBeInstanceOf(ApiError);
+
+    expect(capturedContext).toMatchObject({
+      method: 'POST',
+      path: '/api/v1/data',
+      body: { test: 'value' },
+      attempt: 1,
+    });
+    expect(capturedContext.requestId).toBeDefined();
+  });
+
+  it('handles async error handlers', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        json: async () => ({ error: 'Rate limited' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true }),
+      });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', {
+      retryAttempts: 3,
+      errorHandler: async (error: DorisioError) => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        if (error.statusCode === 429) {
+          return { action: 'retry', delayMs: 50 };
+        }
+        return { action: 'throw' };
+      },
+    });
+
+    const promise = client.request('/api/v1/data', { method: 'GET' });
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result).toEqual({ success: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls back to normal error handling when error handler throws', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: 'Server error' }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', {
+      retryAttempts: 1,
+      errorHandler: async () => {
+        throw new Error('Handler failed');
+      },
+    });
+
+    await expect(client.request('/api/v1/data', { method: 'GET' })).rejects.toBeInstanceOf(ApiError);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
