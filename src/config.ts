@@ -10,6 +10,7 @@ export interface SdkConfig {
   retryAttempts: number;
   retryDelay: number;
   debug: boolean;
+  deduplication: boolean;
 }
 
 const DEFAULT_CONFIG: SdkConfig = {
@@ -18,6 +19,7 @@ const DEFAULT_CONFIG: SdkConfig = {
   retryAttempts: parseInt(process.env.DORISIO_RETRY_ATTEMPTS || '3', 10),
   retryDelay: parseInt(process.env.DORISIO_RETRY_DELAY || '1000', 10),
   debug: process.env.DORISIO_DEBUG === 'true',
+  deduplication: process.env.DORISIO_DEDUPLICATION !== 'false',
 };
 
 let config: SdkConfig = { ...DEFAULT_CONFIG };

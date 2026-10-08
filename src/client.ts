@@ -197,6 +197,7 @@ export class DorisioClient {
   private pluginSystem: PluginSystem;
   private offlineManager?: OfflineManager;
   private currentCorrelationId?: string;
+  private pendingRequests = new Map<string, Promise<ApiResponse<unknown>>>();
 
   constructor(config: ClientConfig) {
     const mode = normalizeClientMode(config.mode);
@@ -507,6 +508,51 @@ export class DorisioClient {
    * Make request to backend API (mocked automatically in sandbox mode)
    */
   async request<T = unknown>(
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+    path: string,
+    body?: unknown,
+    options?: Partial<RequestOptions>
+  ): Promise<ApiResponse<T>> {
+    const dedupeEnabled = this.config.deduplicateRequests !== false;
+    const dedupeKey = dedupeEnabled
+      ? this.buildDedupeKey(method, path, body, options)
+      : undefined;
+    if (dedupeKey) {
+      const pending = this.pendingRequests.get(dedupeKey);
+      if (pending) {
+        return pending as Promise<ApiResponse<T>>;
+      }
+    }
+
+    const requestPromise = this.executeRequest<T>(method, path, body, options);
+    if (dedupeKey) {
+      this.pendingRequests.set(dedupeKey, requestPromise as Promise<ApiResponse<unknown>>);
+      requestPromise.finally(() => {
+        if (this.pendingRequests.get(dedupeKey) === (requestPromise as Promise<ApiResponse<unknown>>)) {
+          this.pendingRequests.delete(dedupeKey);
+        }
+      });
+    }
+    return requestPromise;
+  }
+
+  private buildDedupeKey(
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+    path: string,
+    body?: unknown,
+    options?: Partial<RequestOptions>
+  ): string {
+    let bodyHash = '';
+    try {
+      bodyHash = body === undefined ? '' : JSON.stringify(body);
+    } catch {
+      bodyHash = String(body);
+    }
+    const requestId = options?.requestId ?? '';
+    return `${method}:${path}:${bodyHash}:${requestId}`;
+  }
+
+  private async executeRequest<T = unknown>(
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
     path: string,
     body?: unknown,

@@ -38,8 +38,6 @@ import { getTracingProvider, SpanStatus } from '../lib/telemetry';
 import { validateSchema } from '../validation/schema-validator';
 import type { ValidationSchemas } from '../types/validation';
 import { prepareRequestBody, type RequestCompressionConfig } from './compress';
-import { CacheManager } from '../cache/cache-manager';
-import type { CacheOptions } from '../types/cache';
 
 export type HttpClientMode = 'live' | 'sandbox' | 'production';
 
@@ -118,6 +116,10 @@ export interface HttpClientOptions {
   /** Reuse an in-flight or recently completed identical request. */
   deduplicateRequests?: boolean;
   deduplicationWindow?: number;
+  /** Request compression configuration. */
+  compress?: RequestCompressionConfig;
+  /** Called with every response received by the client. */
+  onResponse?: (response: Response) => void;
   /** Optional response cache configuration. */
   cache?: CacheOptions;
   /** Custom error handler for error recovery strategies */
@@ -346,7 +348,7 @@ export class HttpClient {
     });
     this.debug = options?.debug ?? false;
     this.logger = options?.logger ?? ((message, data) => console.debug(message, data));
-    this.deduplicateRequests = options?.deduplicateRequests ?? false;
+    this.deduplicateRequests = options?.deduplicateRequests ?? true;
     this.deduplicationWindow = options?.deduplicationWindow ?? 1000;
     this.cacheManager = new CacheManager(options?.cache);
     this.errorHandler = options?.errorHandler;
@@ -742,6 +744,10 @@ export class HttpClient {
 
   private async executeDeduplication<T>(key: string, fn: () => Promise<T>): Promise<T> {
     if (!this.deduplicateRequests) return fn();
+    const existing = this.deduplicationCache.get(key);
+    if (existing && existing.expiresAt > Date.now()) {
+      return existing.promise as Promise<T>;
+    }
     const promise = fn();
     const cachedRequest: CachedRequest = {
       promise,
