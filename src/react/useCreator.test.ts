@@ -452,4 +452,155 @@ describe('useCreator Hook', () => {
       });
     });
   });
+
+  describe('standardized request flags (data, isLoading, isError, error)', () => {
+    it('reports a pending state before any request has settled', () => {
+      const { result } = renderHook(() => useCreator(), { wrapper });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isError).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(result.current.data).toBeNull();
+    });
+
+    it('keeps isLoading true while the request is in flight', async () => {
+      let resolvePromise: (value: any) => void = () => undefined;
+      mockRequest.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolvePromise = resolve;
+        })
+      );
+
+      const { result } = renderHook(() => useCreator(), { wrapper });
+
+      let callPromise: Promise<Creator | null>;
+      act(() => {
+        callPromise = result.current.fetchCreator('creator-123');
+      });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isError).toBe(false);
+
+      await act(async () => {
+        resolvePromise({ success: true, data: makeMockCreator() });
+        await callPromise;
+      });
+    });
+
+    it('transitions isLoading from true to false when data arrives', async () => {
+      const mockCreator = makeMockCreator();
+      mockRequest.mockResolvedValueOnce({ success: true, data: mockCreator });
+
+      const { result } = renderHook(() => useCreator(), { wrapper });
+
+      let callPromise: Promise<Creator | null>;
+      act(() => {
+        callPromise = result.current.fetchCreator('creator-123');
+      });
+      expect(result.current.isLoading).toBe(true);
+
+      await act(async () => {
+        await callPromise;
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isError).toBe(false);
+      expect(result.current.data).toEqual(mockCreator);
+      expect(result.current.creator).toEqual(mockCreator);
+    });
+
+    it('exposes the error object alongside isError on failure', async () => {
+      const error = new ApiError('Network error', 500);
+      mockRequest.mockRejectedValueOnce(error);
+
+      const { result } = renderHook(() => useCreator(), { wrapper });
+
+      await act(async () => {
+        await result.current.fetchCreator('creator-123');
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isError).toBe(true);
+      expect(result.current.error).toBe(error);
+      expect(result.current.data).toBeNull();
+    });
+
+    it('clears isError when the error is cleared', async () => {
+      mockRequest.mockRejectedValueOnce(new ApiError('Not found', 404));
+
+      const { result } = renderHook(() => useCreator(), { wrapper });
+
+      await act(async () => {
+        await result.current.fetchCreator('missing');
+      });
+      expect(result.current.isError).toBe(true);
+
+      act(() => {
+        result.current.clearError();
+      });
+
+      expect(result.current.isError).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('returns to isLoading true for a follow-up request after settling', async () => {
+      mockRequest.mockResolvedValueOnce({ success: true, data: makeMockCreator() });
+
+      const { result } = renderHook(() => useCreator(), { wrapper });
+
+      await act(async () => {
+        await result.current.fetchCreator('creator-123');
+      });
+      expect(result.current.isLoading).toBe(false);
+
+      let resolveSecond: (value: any) => void = () => undefined;
+      mockRequest.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveSecond = resolve;
+        })
+      );
+
+      let second: Promise<Creator | null>;
+      act(() => {
+        second = result.current.fetchCreator('creator-456');
+      });
+      expect(result.current.isLoading).toBe(true);
+
+      await act(async () => {
+        resolveSecond({ success: true, data: makeMockCreator({ id: 'creator-456' }) });
+        await second;
+      });
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('exposes the profile as data after a profile fetch', async () => {
+      const mockProfile = makeMockProfile();
+      mockRequest.mockResolvedValueOnce({ success: true, data: mockProfile });
+
+      const { result } = renderHook(() => useCreator(), { wrapper });
+
+      await act(async () => {
+        await result.current.fetchProfile('alice');
+      });
+
+      expect(result.current.data).toEqual(mockProfile);
+      expect(result.current.profile).toEqual(mockProfile);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isError).toBe(false);
+    });
+
+    it('settles without data when the response is unsuccessful and does not throw', async () => {
+      mockRequest.mockResolvedValueOnce({ success: false, error: { message: 'Nope' } });
+
+      const { result } = renderHook(() => useCreator(), { wrapper });
+
+      await act(async () => {
+        await result.current.fetchCreator('creator-123');
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.data).toBeNull();
+    });
+  });
 });

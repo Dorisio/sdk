@@ -51,6 +51,14 @@ export class CircuitOpenError extends Error {
   }
 }
 
+/**
+ * Alias kept so both import spellings (`CircuitOpenError` and
+ * `CircuitBreakerOpenError`) resolve to the same class. `assertCanAttempt`
+ * throws `CircuitOpenError`, which previously referenced the missing alias and
+ * crashed with a ReferenceError.
+ */
+export { CircuitOpenError as CircuitBreakerOpenError };
+
 interface CircuitEntry {
   state: CircuitState;
   failures: number;
@@ -115,10 +123,10 @@ export class CircuitBreaker {
     return false;
   }
 
-  /** Throws a CircuitBreakerOpenError if the circuit is open. */
+  /** Throws a CircuitOpenError if the circuit is open. */
   assertCanAttempt(key: string): void {
     if (!this.canAttempt(key)) {
-      throw new CircuitBreakerOpenError(key, this.remainingResetTime(key));
+      throw new CircuitOpenError(key, this.remainingResetTime(key));
     }
   }
 

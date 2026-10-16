@@ -4,6 +4,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { HttpClient } from './http-client';
+import { CircuitBreaker, CircuitOpenError } from './circuit-breaker';
 import { ApiError, DorisioError } from '../types';
 import type { ErrorHandlerContext } from '../types/errors';
 
@@ -643,5 +644,355 @@ describe('HttpClient custom error handlers', () => {
 
     await expect(client.request('/api/v1/data', { method: 'GET' })).rejects.toBeInstanceOf(ApiError);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('HttpClient error paths (Issue #165)', () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  /** Rejects like a real fetch once the request signal aborts. */
+  function hangingFetch() {
+    return vi.fn().mockImplementation((_url: string, init?: RequestInit) => {
+      return new Promise((_resolve, reject) => {
+        const signal = init?.signal;
+        const bail = () =>
+          reject(
+            signal?.reason ??
+              new DOMException('The operation was aborted due to timeout', 'TimeoutError')
+          );
+        if (signal?.aborted) {
+          bail();
+          return;
+        }
+        signal?.addEventListener('abort', bail, { once: true });
+      });
+    });
+  }
+
+  it('fails a request with TimeoutError when the AbortSignal timeout fires', async () => {
+    const fetchMock = hangingFetch();
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', { retryAttempts: 1 });
+    const pending = client.request('/api/v1/reports/export', {
+      method: 'GET',
+      timeout: 30,
+    });
+
+    await expect(pending).rejects.toMatchObject({ name: 'TimeoutError' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(true);
+  });
+
+  it('fails a streaming request with a Dorisio TimeoutError before headers arrive', async () => {
+    const fetchMock = hangingFetch();
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com');
+
+    await expect(client.requestTextStream('/api/v1/export', { timeout: 30 })).rejects.toMatchObject(
+      { name: 'TimeoutError', statusCode: 408, code: 'TIMEOUT' }
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects a streaming request with ApiError on a non-OK status', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: 'Export failed', code: 'EXPORT_FAILED' }), {
+        status: 503,
+        headers: { 'content-type': 'application/json' },
+      })
+    );
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com');
+
+    await expect(client.requestTextStream('/api/v1/export')).rejects.toMatchObject({
+      name: 'ApiError',
+      statusCode: 503,
+      code: 'EXPORT_FAILED',
+      message: 'Export failed',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('streams a successful body and reports byte progress', async () => {
+    const body = 'chunk-one chunk-two';
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(body, {
+        status: 200,
+        headers: { 'content-length': String(body.length) },
+      })
+    );
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com');
+    const progress: Array<{ bytesReceived: number; percentComplete?: number }> = [];
+
+    const { stream, stats } = await client.requestTextStream('/api/v1/export', {
+      onProgress: (update) => progress.push(update),
+    });
+
+    const reader = stream.getReader();
+    let text = '';
+    for (;;) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      text += chunk.value ?? '';
+    }
+
+    expect(text).toBe(body);
+    expect(stats.totalBytes).toBe(body.length);
+    expect(stats.chunks).toBeGreaterThan(0);
+    expect(progress.length).toBeGreaterThan(0);
+    expect(progress[0]).toMatchObject({
+      bytesReceived: body.length,
+      percentComplete: 100,
+    });
+  });
+
+  it('opens the circuit breaker after consecutive failures and refuses further attempts', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: 'Server error', code: 'INTERNAL' }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', {
+      retryAttempts: 1,
+      deduplicateRequests: false,
+      circuitBreaker: { failureThreshold: 2, resetTimeout: 60_000 },
+    });
+
+    await expect(client.request('/api/v1/wallets', { method: 'GET' })).rejects.toBeInstanceOf(
+      ApiError
+    );
+    await expect(client.request('/api/v1/wallets', { method: 'GET' })).rejects.toBeInstanceOf(
+      ApiError
+    );
+
+    const breaker = (client as unknown as { circuitBreaker?: CircuitBreaker }).circuitBreaker;
+    expect(breaker).toBeDefined();
+    expect(breaker?.getState('/api/v1/wallets')).toBe('open');
+    expect(breaker?.canAttempt('/api/v1/wallets')).toBe(false);
+    expect(breaker?.remainingResetTime('/api/v1/wallets')).toBeGreaterThan(0);
+
+    const status = (breaker?.getStatuses() ?? [])[0];
+    expect(status).toMatchObject({
+      key: '/api/v1/wallets',
+      state: 'open',
+      failures: 2,
+      successes: 0,
+    });
+    expect(status?.openedAt).toEqual(expect.any(Number));
+    expect(status?.lastFailureAt).toEqual(expect.any(Number));
+
+    let thrown: unknown;
+    try {
+      breaker?.assertCanAttempt('/api/v1/wallets');
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(CircuitOpenError);
+    expect(thrown).toMatchObject({
+      name: 'CircuitBreakerOpenError',
+      code: 'CIRCUIT_BREAKER_OPEN',
+      key: '/api/v1/wallets',
+    });
+    expect((thrown as CircuitOpenError).retryAfter).toBeGreaterThan(0);
+    expect((thrown as Error).message).toContain('/api/v1/wallets');
+  });
+
+  it('keeps other endpoints usable while one circuit is open', async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/flaky')) {
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+          json: async () => ({ error: 'Server error' }),
+        });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => ({ id: 'ok' }) });
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', {
+      retryAttempts: 1,
+      deduplicateRequests: false,
+      circuitBreaker: { failureThreshold: 1, resetTimeout: 60_000 },
+    });
+
+    await expect(client.request('/api/v1/flaky', { method: 'GET' })).rejects.toBeInstanceOf(ApiError);
+    await expect(client.request('/api/v1/stable', { method: 'GET' })).resolves.toEqual({ id: 'ok' });
+
+    const breaker = (client as unknown as { circuitBreaker?: CircuitBreaker }).circuitBreaker;
+    expect(breaker?.getState('/api/v1/flaky')).toBe('open');
+    expect(breaker?.getState('/api/v1/stable')).toBe('closed');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('surfaces 429 with a numeric Retry-After and never retries it', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      headers: { get: (name: string) => (name.toLowerCase() === 'retry-after' ? '30' : null) },
+      text: async () => JSON.stringify({ error: 'Rate limited', code: 'RATE_LIMITED' }),
+      json: async () => ({ error: 'Rate limited', code: 'RATE_LIMITED' }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', {
+      retryAttempts: 3,
+      deduplicateRequests: false,
+    });
+
+    await expect(client.request('/api/v1/data', { method: 'GET' })).rejects.toMatchObject({
+      name: 'ApiError',
+      statusCode: 429,
+      code: 'RATE_LIMITED',
+      message: 'Rate limited',
+      retryAfter: 30,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('converts an HTTP-date Retry-After into whole seconds', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      headers: {
+        get: (name: string) =>
+          name.toLowerCase() === 'retry-after'
+            ? new Date(Date.now() + 5_000).toUTCString()
+            : null,
+      },
+      text: async () => JSON.stringify({ error: 'Rate limited' }),
+      json: async () => ({ error: 'Rate limited' }),
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', { retryAttempts: 3 });
+
+    let thrown: ApiError | undefined;
+    try {
+      await client.request('/api/v1/data', { method: 'GET' });
+    } catch (error) {
+      thrown = error as ApiError;
+    }
+
+    expect(thrown).toBeInstanceOf(ApiError);
+    expect(thrown?.statusCode).toBe(429);
+    expect(thrown?.retryAfter).toBeGreaterThanOrEqual(4);
+    expect(thrown?.retryAfter).toBeLessThanOrEqual(5);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('isolates a mixed batch so successes resolve and failures keep their types', async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/ok')) {
+        return Promise.resolve({ ok: true, status: 200, json: async () => ({ id: 'ok-1' }) });
+      }
+      if (url.includes('/missing')) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: async () => ({ error: 'Not found', code: 'NOT_FOUND' }),
+        });
+      }
+      return Promise.reject(new Error('network down'));
+    });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', {
+      retryAttempts: 1,
+      deduplicateRequests: false,
+    });
+
+    const results = await Promise.allSettled([
+      client.request('/api/v1/ok', { method: 'GET' }),
+      client.request('/api/v1/missing', { method: 'GET' }),
+      client.request('/api/v1/flaky', { method: 'GET' }),
+      client.request('/api/v1/ok-again', { method: 'GET' }),
+    ]);
+
+    expect(results.map((result) => result.status)).toEqual([
+      'fulfilled',
+      'rejected',
+      'rejected',
+      'fulfilled',
+    ]);
+    expect(
+      results[0].status === 'fulfilled' ? results[0].value : undefined
+    ).toEqual({ id: 'ok-1' });
+    expect(results[1]).toMatchObject({
+      reason: expect.objectContaining({ name: 'ApiError', statusCode: 404, code: 'NOT_FOUND' }),
+    });
+    expect(results[2]).toMatchObject({
+      reason: expect.objectContaining({ name: 'Error', message: 'network down' }),
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('propagates connection failures without retrying a non-idempotent POST', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:443'));
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    const client = new HttpClient('https://api.example.com', { retryAttempts: 3 });
+
+    await expect(
+      client.request('/api/v1/transactions/tip', {
+        method: 'POST',
+        body: { creatorId: 'c1', amount: 10 },
+      })
+    ).rejects.toThrow('ECONNREFUSED');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('exhausts the retry budget and rethrows the final server error', async () => {
+    vi.useFakeTimers();
+
+    try {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        json: async () => ({ error: 'Unavailable', code: 'UNAVAILABLE' }),
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const client = new HttpClient('https://api.example.com', {
+        retryAttempts: 3,
+        deduplicateRequests: false,
+      });
+
+      const pending = client.request('/api/v1/orders', { method: 'GET' });
+      const assertion = expect(pending).rejects.toMatchObject({
+        name: 'ApiError',
+        statusCode: 503,
+        code: 'UNAVAILABLE',
+        message: 'Unavailable',
+      });
+      await vi.runAllTimersAsync();
+      await assertion;
+
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      const attempts = fetchMock.mock.calls.map(
+        (call) => (call[1] as RequestInit).method
+      );
+      expect(attempts).toEqual(['GET', 'GET', 'GET']);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
