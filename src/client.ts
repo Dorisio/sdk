@@ -100,6 +100,16 @@ import type {
 } from './types/interceptors';
 import { RequestSigner, type RequestSignerOptions } from './http/request-signer';
 import { WebSocketClient, type WebSocketClientOptions } from './websocket/websocket-client';
+import {
+  DorisioRealtimeClient,
+  type DorisioRealtimeClientOptions,
+} from './ws/websocket-client';
+import {
+  CreatorSubscriptions,
+  PayoutSubscriptions,
+  SubscriptionManager,
+  TipsSubscriptions,
+} from './ws/subscriptions';
 import type { I18nConfig } from './types/i18n';
 
 export type ClientMode = 'sandbox' | 'live' | 'production';
@@ -177,8 +187,17 @@ export interface ClientConfig {
   analytics?: AnalyticsOptions | false;
   /** Internationalization configuration */
   i18n?: I18nConfig;
-  /** WebSocket/realtime configuration */
-  websocket?: WebSocketClientOptions;
+  /**
+   * WebSocket/realtime configuration. Pass `false` to disable real-time
+   * entirely. Supply `url` here or use {@link wsUrl}.
+   */
+  websocket?: WebSocketClientOptions | false;
+  /**
+   * Shorthand for the WebSocket endpoint (`wss://…`). Enables the
+   * `client.tips` / `client.creators` / `client.payouts` subscription
+   * namespaces without an explicit `enableRealtime()` call.
+   */
+  wsUrl?: string;
   /** Request signing configuration */
   requestSigning?: RequestSignerOptions;
   /** API version for the client */
@@ -233,6 +252,13 @@ export class DorisioClient {
   public requestSigner?: unknown;
   public failoverManager?: FailoverManager;
   public realtime?: unknown;
+  /** Real-time tip subscriptions (requires a WebSocket url). */
+  public readonly tips: TipsSubscriptions = new TipsSubscriptions(this);
+  /** Real-time creator + earnings subscriptions (requires a WebSocket url). */
+  public readonly creators: CreatorSubscriptions = new CreatorSubscriptions(this);
+  /** Real-time payout subscriptions (requires a WebSocket url). */
+  public readonly payouts: PayoutSubscriptions = new PayoutSubscriptions(this);
+  private realtimeClient?: DorisioRealtimeClient;
   private config: ClientConfig & { timeout: number; mode: 'live' | 'sandbox' };
   private httpClient: HttpClient;
   private token?: string;
@@ -282,6 +308,8 @@ export class DorisioClient {
       throttleWindowMs: config.throttleWindowMs,
       proxy: config.proxy,
       compress: config.compress,
+      websocket: config.websocket,
+      wsUrl: config.wsUrl,
     };
 
     this.token = config.token;
@@ -765,59 +793,106 @@ export class DorisioClient {
   /**
    * Start real-time sync over WebSocket.
    *
-   * Uses `options` when given, otherwise `ClientConfig.websocket`. The client
-   * token is passed to the socket unless the options already carry one, and the
-   * returned {@link WebSocketClient} is reused by `subscribeRealtime()`.
+   * Uses `options` when given, otherwise `ClientConfig.websocket`/`wsUrl`. The
+   * client token is passed to the socket unless the options already carry one,
+   * and the returned {@link WebSocketClient} is reused by `subscribeRealtime()`
+   * and the `client.tips` / `client.creators` / `client.payouts` namespaces.
    */
   async enableRealtime(options?: WebSocketClientOptions): Promise<WebSocketClient> {
-    const resolved =
-      options ??
-      ((this.config.websocket as any) === false ? undefined : (this.config.websocket as any));
+    const resolved = options ?? this.getConfiguredWebSocket();
     if (!resolved || typeof resolved.url !== 'string' || resolved.url.length === 0) {
       throw new Error(
         'enableRealtime() requires a WebSocket url (pass one, or set ClientConfig.websocket)'
       );
     }
 
-    if (this.realtime) this.disableRealtime();
+    if (this.realtimeClient) this.disableRealtime();
 
-    this.realtime = new WebSocketClient({ token: this.token, ...resolved });
-    await this.realtime.connect();
-    return this.realtime;
+    const client = new DorisioRealtimeClient({ token: this.token, ...resolved });
+    this.realtimeClient = client;
+    this.realtime = client.socket;
+    await client.connect();
+    return client.socket;
   }
 
   /** The real-time client, or `null` when real-time is not enabled. */
   getRealtime(): WebSocketClient | null {
-    return this.realtime;
+    return this.realtimeClient ? this.realtimeClient.socket : null;
   }
 
   /** Current real-time state, or `disabled` when not enabled. */
   getRealtimeState(): WebSocketState | 'disabled' {
-    return this.realtime ? this.realtime.getState() : 'disabled';
+    return this.realtimeClient ? this.realtimeClient.getState() : 'disabled';
   }
 
   /**
    * Subscribe to a real-time channel. Requires {@link enableRealtime} (or a
-   * `ClientConfig.websocket`) first. Returns an unsubscribe function.
+   * `ClientConfig.websocket`). Returns an unsubscribe function.
+   *
+   * Low-level counterpart of the domain namespaces; the listener receives the
+   * full {@link RealtimeEvent} envelope.
    */
   subscribeRealtime<T = unknown>(
     channel: string,
     listener: RealtimeListener<T>,
     params?: Record<string, unknown>
   ): () => void {
-    if (!this.realtime) {
+    const client = this.realtimeClient;
+    if (!client) {
       throw new Error(
         'Realtime is not enabled: call await enableRealtime() (or set ClientConfig.websocket) first'
       );
     }
-    return this.realtime.subscribe(channel, listener, params);
+    return client.subscribeRaw(channel, listener, params);
   }
 
   /** Close the real-time connection and drop the client. */
   disableRealtime(): void {
-    if (!this.realtime) return;
-    this.realtime.disconnect();
+    const client = this.realtimeClient;
+    this.realtimeClient = undefined;
     this.realtime = null;
+    if (client) client.disconnect();
+  }
+
+  /**
+   * The subscription manager backing `client.tips`, `client.creators` and
+   * `client.payouts`.
+   *
+   * Lazily creates (and connects) a real-time client from `wsUrl` /
+   * `ClientConfig.websocket` on first use, so
+   * `client.tips.subscribe(tipId, cb)` works without an explicit
+   * `await enableRealtime()`. Throws when no WebSocket url is configured.
+   */
+  getSubscriptionManager(): SubscriptionManager {
+    return this.ensureRealtimeClient().subscriptions;
+  }
+
+  private getConfiguredWebSocket(): WebSocketClientOptions | undefined {
+    if (this.config.websocket === false) return undefined;
+    const configured = this.config.websocket;
+    if (!configured && !this.config.wsUrl) return undefined;
+    return { ...configured, url: this.config.wsUrl ?? configured?.url ?? '' };
+  }
+
+  private ensureRealtimeClient(): DorisioRealtimeClient {
+    if (this.realtimeClient) return this.realtimeClient;
+
+    const resolved = this.getConfiguredWebSocket();
+    if (!resolved || typeof resolved.url !== 'string' || resolved.url.length === 0) {
+      throw new Error(
+        'Real-time is not configured: pass `wsUrl` (or `websocket`) when constructing DorisioClient, ' +
+          'or call `await enableRealtime()` first'
+      );
+    }
+
+    const options: DorisioRealtimeClientOptions = { token: this.token, ...resolved };
+    const client = new DorisioRealtimeClient(options);
+    this.realtimeClient = client;
+    this.realtime = client.socket;
+    // Fire-and-forget: subscriptions register immediately and are flushed once
+    // the socket opens.
+    void client.connect();
+    return client;
   }
 
   /**

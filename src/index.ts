@@ -196,6 +196,46 @@ export {
   type PollingFallbackOptions,
 } from './websocket/websocket-client';
 
+// Re-export domain-level real-time subscriptions (Issue #41)
+export {
+  DorisioRealtimeClient,
+  type DorisioRealtimeClientOptions,
+} from './ws/websocket-client';
+export {
+  SubscriptionManager,
+  TipsSubscriptions,
+  CreatorSubscriptions,
+  PayoutSubscriptions,
+  type RealtimeTransport,
+  type EventFilter,
+  type SubscriptionOptions,
+  type SubscriptionManagerOptions,
+  type SubscriptionManagerProvider,
+} from './ws/subscriptions';
+export {
+  TIPS_CHANNEL,
+  CREATORS_CHANNEL,
+  PAYOUTS_CHANNEL,
+  EARNINGS_CHANNEL,
+  BALANCE_CHANNEL,
+  TRANSACTIONS_CHANNEL,
+  NOTIFICATIONS_CHANNEL,
+  REALTIME_CHANNELS,
+  getEventId,
+  getEventResourceId,
+  isCreatorEarningsEvent,
+  type RealtimeEventEnvelope,
+  type TipStatus,
+  type PayoutStatus,
+  type TipUpdateEvent,
+  type CreatorEarningsEvent,
+  type PayoutUpdateEvent,
+  type DorisioRealtimeEvent,
+  type TipUpdateListener,
+  type CreatorEarningsListener,
+  type PayoutUpdateListener,
+} from './types/events';
+
 // Re-export types
 export type { ApiResponse, PaginationMeta, PaginatedResponse } from './types/api';
 export {

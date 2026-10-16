@@ -14,14 +14,14 @@ import {
 import { ApiError } from '../types/errors';
 import { useDorisio } from './DorisioProvider';
 
-interface UseCreatorState {
+export interface UseCreatorState {
   creator: Creator | null;
   profile: CreatorProfile | null;
   loading: boolean;
   error: ApiError | null;
 }
 
-interface UseCreatorActions {
+export interface UseCreatorActions {
   fetchCreator: (creatorId: string) => Promise<Creator | null>;
   fetchProfile: (username: string) => Promise<CreatorProfile | null>;
   createCreator: (data: CreateCreatorRequest) => Promise<Creator | null>;
@@ -30,7 +30,28 @@ interface UseCreatorActions {
 }
 
 /**
+ * Standardized request flags returned by {@link useCreator}.
+ *
+ * `isLoading` stays `true` from the moment the hook mounts (nothing has been
+ * resolved yet) until the first request settles — either with data or with an
+ * error — and turns `true` again for every subsequent in-flight request.
+ * `isError` mirrors the presence of the `error` object.
+ */
+export interface UseCreatorRequestFlags<T> {
+  data: T | null;
+  isLoading: boolean;
+  isError: boolean;
+}
+
+export type UseCreatorResult = UseCreatorState &
+  UseCreatorRequestFlags<Creator | CreatorProfile> &
+  UseCreatorActions;
+
+/**
  * Hook for managing creator profiles, identity fetching, and profile updates.
+ *
+ * Returns the raw entity state (`creator`, `profile`, `loading`, `error`) plus
+ * the standardized request flags `{ data, isLoading, isError, error }`.
  *
  * @returns State and action handlers for creator operations
  *
@@ -39,27 +60,27 @@ interface UseCreatorActions {
  * import { useCreator } from 'dorisio-sdk/react';
  *
  * function CreatorProfileView({ creatorId }: { creatorId: string }) {
- *   const { creator, loading, error, fetchCreator } = useCreator();
+ *   const { data, isLoading, isError, error, fetchCreator } = useCreator();
  *
  *   useEffect(() => {
  *     fetchCreator(creatorId);
  *   }, [creatorId, fetchCreator]);
  *
- *   if (loading) return <div>Loading creator...</div>;
- *   if (error) return <div>Error: {error.message}</div>;
- *   if (!creator) return null;
+ *   if (isLoading) return <div>Loading creator...</div>;
+ *   if (isError) return <div>Error: {error?.message}</div>;
+ *   if (!data) return null;
  *
  *   return (
  *     <div>
- *       <h1>{creator.name}</h1>
- *       <p>{creator.bio}</p>
- *       {creator.verified && <span>Verified</span>}
+ *       <h1>{data.displayName ?? data.username}</h1>
+ *       <p>{data.bio}</p>
+ *       {data.verified && <span>Verified</span>}
  *     </div>
  *   );
  * }
  * ```
  */
-export function useCreator(): UseCreatorState & UseCreatorActions {
+export function useCreator(): UseCreatorResult {
   const { client, setError: setParentError } = useDorisio();
   const [state, setState] = useState<UseCreatorState>({
     creator: null,
@@ -67,9 +88,15 @@ export function useCreator(): UseCreatorState & UseCreatorActions {
     loading: false,
     error: null,
   });
+  // Cleared the first time a request settles so `isLoading` can report the
+  // pending → settled transition described in the hook contract.
+  const [settled, setSettled] = useState(false);
 
   const setLoading = useCallback((loading: boolean) => {
     setState((prev) => ({ ...prev, loading }));
+    // Any request that reaches a terminal state (data or error) settles the
+    // hook, which flips `isLoading` back to false.
+    if (!loading) setSettled(true);
   }, []);
 
   const setError = useCallback((error: ApiError | null) => {
@@ -203,8 +230,13 @@ export function useCreator(): UseCreatorState & UseCreatorActions {
     setError(null);
   }, [setError]);
 
+  const data = state.creator ?? state.profile;
+
   return {
     ...state,
+    data,
+    isLoading: state.loading || !settled,
+    isError: state.error !== null,
     fetchCreator,
     fetchProfile,
     createCreator,

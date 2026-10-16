@@ -177,4 +177,99 @@ describe('DorisioClient real-time support', () => {
     expect(first.getState()).toBe('closed');
     expect(MockSocket.instances).toHaveLength(2);
   });
+
+  describe('domain subscription namespaces (Issue #41)', () => {
+    /** `wsUrl` shorthand plus an injected socket factory. */
+    const domainConfig = (extras: Partial<ClientConfig> = {}): Partial<ClientConfig> => ({
+      wsUrl: 'wss://realtime.test/domain',
+      websocket: { url: 'wss://realtime.test/domain', webSocketFactory: factory },
+      ...extras,
+    });
+
+    it('auto-connects from wsUrl and routes tip updates per tip id', async () => {
+      const client = createClient(domainConfig({ token: 'jwt_token' }));
+      const updates: unknown[] = [];
+
+      client.tips.subscribe('tip-1', (update) => updates.push(update));
+
+      const socket = MockSocket.last;
+      socket.open();
+
+      expect(client.getRealtimeState()).toBe('open');
+      expect(JSON.parse(socket.sent[socket.sent.length - 1] ?? 'null')).toEqual({
+        type: 'subscribe',
+        channel: 'tips',
+      });
+
+      socket.emit('tips', { id: 'e1', tipId: 'tip-1', status: 'completed' });
+      socket.emit('tips', { id: 'e2', tipId: 'tip-2', status: 'pending' });
+
+      expect(updates).toEqual([{ id: 'e1', tipId: 'tip-1', status: 'completed' }]);
+
+      client.tips.unsubscribe('tip-1');
+      socket.emit('tips', { id: 'e3', tipId: 'tip-1', status: 'failed' });
+
+      expect(updates).toHaveLength(1);
+    });
+
+    it('delivers creator earnings across the creators and earnings channels', async () => {
+      const client = createClient(domainConfig());
+      const earnings: unknown[] = [];
+
+      client.creators.subscribeEarnings('creator-1', (update) => earnings.push(update));
+
+      const socket = MockSocket.last;
+      socket.open();
+
+      socket.emit('creators', { id: 'e1', creatorId: 'creator-1', totalEarnings: 42 });
+      socket.emit('earnings', { id: 'e2', creatorId: 'creator-1', pendingBalance: 5 });
+      socket.emit('creators', { id: 'e3', creatorId: 'creator-1', displayName: 'Alice' });
+
+      expect(earnings).toEqual([
+        { id: 'e1', creatorId: 'creator-1', totalEarnings: 42 },
+        { id: 'e2', creatorId: 'creator-1', pendingBalance: 5 },
+      ]);
+    });
+
+    it('passes the client token into a lazily created socket', () => {
+      const client = createClient(domainConfig({ token: 'jwt_token' }));
+
+      client.tips.subscribe('tip-1', () => undefined);
+
+      expect(MockSocket.last.url).toBe('wss://realtime.test/domain?token=jwt_token');
+    });
+
+    it('rejects domain subscriptions when no WebSocket url is configured', () => {
+      const client = createClient();
+
+      expect(() => client.tips.subscribe('tip-1', () => undefined)).toThrow(/not configured/);
+      expect(() => client.creators.subscribeEarnings('creator-1', () => undefined)).toThrow(
+        /not configured/
+      );
+    });
+
+    it('treats websocket:false as real-time disabled', () => {
+      const client = createClient({ websocket: false, wsUrl: 'wss://realtime.test/domain' });
+
+      expect(() => client.payouts.subscribe('payout-1', () => undefined)).toThrow(/not configured/);
+    });
+
+    it('releases domain subscriptions on disableRealtime', async () => {
+      const client = createClient(domainConfig());
+      const updates: unknown[] = [];
+      client.tips.subscribe('tip-1', (update) => updates.push(update));
+
+      const socket = MockSocket.last;
+      socket.open();
+      socket.emit('tips', { id: 'e1', tipId: 'tip-1' });
+      expect(updates).toHaveLength(1);
+
+      client.disableRealtime();
+      socket.emit('tips', { id: 'e2', tipId: 'tip-1' });
+
+      expect(updates).toHaveLength(1);
+      expect(client.getRealtime()).toBeNull();
+      expect(client.getRealtimeState()).toBe('disabled');
+    });
+  });
 });
