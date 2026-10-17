@@ -895,7 +895,24 @@ export class DorisioClient {
   }
 
   /**
-   * Register middleware for request/response transformation
+   * Register middleware for request/response transformation.
+   *
+   * Middleware executes in a chain pattern with pre-request and post-response phases.
+   * Each middleware receives a context object and a next() function, and must call
+   * await next() to continue the request chain.
+   *
+   * See [Middleware Documentation](../../docs/MIDDLEWARE.md) for details on execution order,
+   * short-circuiting, error handling, and common patterns.
+   *
+   * @example
+   * ```ts
+   * client.use(async (context, next) => {
+   *   console.log('Request:', context.method, context.path);
+   *   const response = await next();
+   *   console.log('Response received');
+   *   return response;
+   * });
+   * ```
    */
   use(middleware: Middleware): void {
     this.middleware.push(middleware);
